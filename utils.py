@@ -1,5 +1,7 @@
 import numpy as np
 import json
+import time
+from datetime import datetime
 
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
@@ -9,6 +11,12 @@ def read_tsv(path, header=True):
         for line in f.readlines():
             data.append(line.strip().split('\t'))
     return np.array(data),h if header else np.array(data)
+
+def write_tsv(path, data, header):
+    with open(path, 'w') as f:
+        f.write('\t'.join(header) + "\n")
+        for line in data:
+            f.write('\t'.join([str(x) for x in line]) + "\n")
 
 def distinct_values(data, idxs):
     results = []
@@ -58,36 +66,100 @@ def discretasize(data, header, idx):
     del header[idx]
     return data,header + new_headers
 
-def parse_filejson(data, idx):
-    res = []
+def parse_filejson(data, h, idx):
+    hnew = h[idx] + "_size"
+    hnew2 = h[idx] + "_len"
+    sizes = []
+    lens = []
     for j in data[:,idx]:
         d = json.loads(j)
         l = len(d)
         s = 0
         for key in d:
             s += key['size']
-        res.append((l,s))
-    return res
+        sizes.append(s)
+        lens.append(l)
+
+    data = np.delete(data, idx, 1)
+    sizes = np.array(sizes).reshape(len(sizes), 1)
+    data = np.append(data, sizes, 1)
+    lens = np.array(lens).reshape(len(lens), 1)
+    data = np.append(data, lens, 1)
+    del h[idx]
+    return data, h + [hnew, hnew2]
 
 # TODO: distinct
-def parse_errorjson(data, idx):
-    res = []
+def parse_errorjson(data, h, idx):
+    hnew = h[idx] + "_len"
+    lens = []
     for j in data[:, idx]:
-        res.append(len(json.loads(j)))
+        lens.append(len(json.loads(j)))
+    data = np.delete(data, idx, 1)
+    lens = np.array(lens).reshape(len(lens),1)
+    data = np.append(data, lens, 1)
+    del h[idx]
+    return data, h + [hnew]
+
+def parse_timestamp(data, h, idx):
+    dayofmonth = []
+    dayofweek = []
+    hour = []
+    year = []
+    month = []
+    minute = []
+    for j in data[:, idx]:
+        d = datetime.fromtimestamp(float(j))
+        dayofmonth.append(d.day)
+        dayofweek.append(d.weekday())
+        hour.append(d.hour)
+        month.append(d.month)
+        year.append(d.year)
+        minute.append(d.minute)
+    dayofmonth = np.array(dayofmonth).reshape(len(dayofmonth), 1)
+    dayofweek = np.array(dayofweek).reshape(len(dayofweek), 1)
+    hour = np.array(hour).reshape(len(hour), 1)
+    month = np.array(month).reshape(len(month), 1)
+    year = np.array(year).reshape(len(year), 1)
+    minute = np.array(minute).reshape(len(minute), 1)
+    data = np.append(data, dayofmonth, 1)
+    data = np.append(data, dayofweek, 1)
+    data = np.append(data, hour, 1)
+    data = np.append(data, month, 1)
+    data = np.append(data, year, 1)
+    data = np.append(data, minute, 1)
+    return data, h + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_month", "timestamp_year", "timestamp_minute"]
+
+
+def remove_outliers(data, idx):
+    #mean = np.mean(data[:,idx].astype(float))
+    #var = np.mean(data[:,idx].astype(float))
+    devet6 = np.percentile(data[:,idx].astype(float), 96)
+    mask = np.array([float(data[i,idx]) < devet6  for i in range(data.shape[0])])
+    data = data[mask]
+    return data
 
 if __name__ == '__main__':
-    data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_01_public_sample.tsv")
-    #data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_medium.tsv")
+    tick = time.time()
+    #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
+    data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
+    #data, h = read_tsv("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv")
+    print 100*(time.time()-tick)
     #output_distinct(data, h)
     #test_discretasize(data,h)
-    selected = ["PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
+    data = remove_outliers(data, 0)
+
+    data, h = parse_timestamp(data, h, h.index("TIMESTAMP"))
+
+    selected = ["ADLOADINGTIME", "PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
                     "CREATIVETYPE", "TIMESTAMP", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH", "TOPMOSTREACHABLEWINDOWHEIGHT",
-                "TOPMOSTREACHABLEWINDOWWIDTH", "FILESJSON", "ERRORSJSON", "EXTERNALCREATIVEID", "NETWORKTYPE"]
+                "TOPMOSTREACHABLEWINDOWWIDTH", "FILESJSON", "ERRORSJSON", "EXTERNALCREATIVEID", "NETWORKTYPE",
+                "timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_month", "timestamp_year",
+                "timestamp_minute"]
     selectedidx = [h.index(s) for s in selected]
     data = data[:, selectedidx]
     h = selected
     disc_attrs = ["PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
-                    "CREATIVETYPE", "EXTERNALCREATIVEID", "NETWORKTYPE"]
+                    "CREATIVETYPE", "EXTERNALCREATIVEID", "NETWORKTYPE", "timestamp_dayofweek"]
     print data.shape
     print h
     for d in disc_attrs:
@@ -97,6 +169,8 @@ if __name__ == '__main__':
     print data.shape
     print h
 
-    parse_filejson(data, h.index("FILESJSON"))
+    data, h = parse_filejson(data, h, h.index("FILESJSON"))
 
-    parse_errorjson(data, h.index("ERRORSJSON"))
+    data, h = parse_errorjson(data, h, h.index("ERRORSJSON"))
+    print data.shape
+    write_tsv("D:\\mfrik\\out.tsv", data, h)
