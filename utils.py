@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
@@ -57,9 +58,26 @@ def discretasize(data, header, idx):
     del header[idx]
     return data,header + new_headers
 
+def parse_filejson(data, idx):
+    res = []
+    for j in data[:,idx]:
+        d = json.loads(j)
+        l = len(d)
+        s = 0
+        for key in d:
+            s += key['size']
+        res.append((l,s))
+    return res
+
+# TODO: distinct
+def parse_errorjson(data, idx):
+    res = []
+    for j in data[:, idx]:
+        res.append(len(json.loads(j)))
+
 if __name__ == '__main__':
-    #data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_01_public_sample.tsv")
-    data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_medium.tsv")
+    data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_01_public_sample.tsv")
+    #data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_medium.tsv")
     #output_distinct(data, h)
     #test_discretasize(data,h)
     selected = ["PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
@@ -78,3 +96,7 @@ if __name__ == '__main__':
 
     print data.shape
     print h
+
+    parse_filejson(data, h.index("FILESJSON"))
+
+    parse_errorjson(data, h.index("ERRORSJSON"))
