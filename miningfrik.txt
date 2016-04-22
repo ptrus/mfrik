@@ -1,0 +1,66 @@
+celtra - mining frik
+
+Try PCA, feature engieneering, remove extreme values?
+
+
+ADLOADINGTIME - target, scale results? RMSE
+
+ACCOUNTID,CAPAIGNID,CREATIVEID,PLACEMENTID - check no. of distinc values... ACCOUNTID - maybe
+
+Timestamp: get- hour!,dayofweek!,minute?month?,year?
+
+Platform: discretasize
+
+platformversion: ?
+
+externaladserver: check no. of distinct
+
+EXTERNALCREATIVEID: ?
+
+EXTERNALPLACEMENTID: ? - check no. of distinct
+
+EXTERNALSITEID: same as above
+EXTERNALSUPPLIERID: same as above
+
+INTENDEDDEVICETYPE: - discretasize
+ACTUALDEVICETYPE: - discretasize
+
+SDK: - discretasize, check no. of distinct
+
+HOSTWINDOWHEIGHT, HOSTWINDOWWIDTH, TOPMOSTREACHABLEWINDOWHEIGHT,TOPMOSTREACHABLEWINDOWWIDTH: probably scale
+
+DEVICEORIENTATION: discretasize
+
+NETWORKTYPE: ?
+
+CDNNAME: discretasize
+
+CREATIVETYPE: discretasize
+
+GEOIP_LNG, GEOIP_LAT: ??
+GEOIP_TIMEZONE: discretasize?
+GEOIP_COUNTRY: dicretasize
+GEOIP_REGION: ?
+GEOIP_CITY: ?
+GEOIP_AREACODE: ?
+GEOIP_METROCODE: ?
+GEOIP_DMACODE: ?
+
+UA_HARDWARETYPE: discretasize?
+UA_DEVICETYPE: dicretasize?
+UA_MOBILEDEVICE: leave?
+UA_PLATFORM: discretasize?
+UA_VENDOR: discretasize
+UA_MODEL: ?
+UA_OS: discretasize
+UA_OSVERSION: ?
+UA_BROWSER: dicretasize
+UA_BROWSERVERSION: ?
+UA_BROWSERRENDERINGENGINE: discretesaze if even differs
+
+FILESJSON: nr. of fields, sum of sizes
+
+ERRORSJSON: check, discretasize or nr. of errors
+
+
+
