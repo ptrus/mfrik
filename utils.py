@@ -2,6 +2,8 @@ import numpy as np
 import json
 import time
 from datetime import datetime
+import psutil
+import gc
 
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
@@ -11,6 +13,30 @@ def read_tsv(path, header=True):
         for line in f.readlines():
             data.append(line.strip().split('\t'))
     return np.array(data),h if header else np.array(data)
+
+def read_tsv_online(path, header=True, maxmemusage=80):
+    with open(path) as f:
+        buffer = []
+        for line in f:
+            if psutil.virtual_memory().percent < maxmemusage:
+                buffer.append(line.strip().split('\t'))
+            else:
+                print (len(buffer))
+                print psutil.virtual_memory()
+                print "out"
+                yield buffer
+                del buffer
+                buffer = []
+                gc.collect()
+                print "in"
+                print psutil.virtual_memory()
+
+def file_apply(inpath, outpath, header=True, fn=id):
+    with open(outpath, 'w') as fout:
+        with open(inpath) as fin:
+            for line in fin:
+                fout.write(fn(line))
+
 
 def write_tsv(path, data, header):
     with open(path, 'w') as f:
@@ -139,6 +165,11 @@ def remove_outliers(data, idx):
     return data
 
 if __name__ == '__main__':
+    '''
+    for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
+        print len(chunk)
+        print "in here"
+    '''
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
     data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
@@ -173,4 +204,4 @@ if __name__ == '__main__':
 
     data, h = parse_errorjson(data, h, h.index("ERRORSJSON"))
     print data.shape
-    write_tsv("D:\\mfrik\\out.tsv", data, h)
+    #write_tsv("D:\\mfrik\\out.tsv", data, h)
