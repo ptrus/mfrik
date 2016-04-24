@@ -1,200 +1,43 @@
-ACCOUNTID
-14 distinct values / 998 all values
-
-
-
-CAMPAIGNID
-27 distinct values / 998 all values
-
-
-
-CREATIVEID
-41 distinct values / 998 all values
-
-
-
-PLACEMENTID
-56 distinct values / 998 all values
-
-
-
-PLATFORMVERSION
-37 distinct values / 998 all values
-
-
-
-EXTERNALADSERVER
-8 distinct values / 998 all values
-
-
-
-EXTERNALCREATIVEID
-1 distinct values / 998 all values
-
-
-
-EXTERNALPLACEMENTID
-114 distinct values / 998 all values
-
-
-
-EXTERNALSITEID
-86 distinct values / 998 all values
-
-
-
-EXTERNALSUPPLIERID
-13 distinct values / 998 all values
-
-
-
-SDK
-2 distinct values / 998 all values
-
-
-
-NETWORKTYPE
-1 distinct values / 998 all values
-
-
-
-GEOIP_REGION
-161 distinct values / 998 all values
-
-
-
-GEOIP_CITY
-586 distinct values / 998 all values
-
-
-
-GEOIP_AREACODE
-191 distinct values / 998 all values
-
-
-
-GEOIP_METROCODE
-129 distinct values / 998 all values
-
-
-
-GEOIP_DMACODE
-129 distinct values / 998 all values
-
-
-
-UA_MODEL
-217 distinct values / 998 all values
-
-
-
-UA_OSVERSION
-50 distinct values / 998 all values
-
-
-
-UA_BROWSERVERSION
-57 distinct values / 998 all values
-
-
-
-peterus@peterus-UX31A:~/Projects/mfrik$ python utils.py 
-ACCOUNTID
-87 distinct values / 48999 all values
-
-
-
-CAMPAIGNID
-274 distinct values / 48999 all values
-
-
-
-CREATIVEID
-434 distinct values / 48999 all values
-
-
-
-PLACEMENTID
-640 distinct values / 48999 all values
-
-
-
-PLATFORMVERSION
-74 distinct values / 48999 all values
-
-
-
-EXTERNALADSERVER
-27 distinct values / 48999 all values
-
-
-
-EXTERNALCREATIVEID
-1 distinct values / 48999 all values
-
-
-
-EXTERNALPLACEMENTID
-1810 distinct values / 48999 all values
-
-
-
-EXTERNALSITEID
-1198 distinct values / 48999 all values
-
-
-
-EXTERNALSUPPLIERID
-81 distinct values / 48999 all values
-
-
-
-SDK
-4 distinct values / 48999 all values
-
-
-
-NETWORKTYPE
-1 distinct values / 48999 all values
-
-
-
-GEOIP_REGION
-473 distinct values / 48999 all values
-
-
-
-GEOIP_CITY
-5796 distinct values / 48999 all values
-
-
-
-GEOIP_AREACODE
-260 distinct values / 48999 all values
-
-
-
-GEOIP_METROCODE
-210 distinct values / 48999 all values
-
-
-
-GEOIP_DMACODE
-210 distinct values / 48999 all values
-
-
-
-UA_MODEL
-1265 distinct values / 48999 all values
-
-
-
-UA_OSVERSION
-115 distinct values / 48999 all values
-
-
-
-UA_BROWSERVERSION
-289 distinct values / 48999 all values
-
+trainset
+EXTERNALSUPPLIERID 1021
+GEOIP_TIMEZONE 274
+HOSTWINDOWHEIGHT 2201
+GEOIP_CITY 25643
+EXTERNALCREATIVEID 1
+HOSTWINDOWWIDTH 1953
+UA_DEVICETYPE 4
+DEVICEORIENTATION 5
+UA_BROWSERRENDERINGENGINE 10
+PLATFORMVERSION 147
+EXTERNALPLACEMENTID 20217
+TOPMOSTREACHABLEWINDOWHEIGHT 2583
+UA_BROWSER 38
+CAMPAIGNID 401
+ACTUALDEVICETYPE 4
+PLATFORM 8
+INTENDEDDEVICETYPE 3
+UA_PLATFORMVERSION 145
+GEOIP_METROCODE 211
+TOPMOSTREACHABLEWINDOWWIDTH 2402
+PLACEMENTID 1229
+CDNNAME 3
+UA_MOBILEDEVICE 2
+UA_BROWSERVERSION 1206
+GEOIP_DMACODE 211
+EXTERNALSITEID 9913
+EXTERNALADSERVER 30
+NETWORKTYPE 3
+UA_PLATFORM 7
+UA_VENDOR 629
+ACCOUNTID 111
+UA_HARDWARETYPE 12
+GEOIP_AREACODE 284
+GEOIP_COUNTRY 201
+UA_MODEL 4828
+UA_OSVERSION 212
+GEOIP_REGION 1385
+CREATIVETYPE 7
+UA_OS 9
+CREATIVEID 672
+SDK 5
 

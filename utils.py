@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 import psutil
 import gc
+from collections import defaultdict
 
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
@@ -30,6 +31,7 @@ def read_tsv_online(path, header=True, maxmemusage=80):
                 gc.collect()
                 print "in"
                 print psutil.virtual_memory()
+        yield buffer
 
 def file_apply(inpath, outpath, header=True, fn=id):
     with open(outpath, 'w') as fout:
@@ -37,12 +39,28 @@ def file_apply(inpath, outpath, header=True, fn=id):
             for line in fin:
                 fout.write(fn(line))
 
-
 def write_tsv(path, data, header):
     with open(path, 'w') as f:
         f.write('\t'.join(header) + "\n")
         for line in data:
             f.write('\t'.join([str(x) for x in line]) + "\n")
+
+def unique_vals(path, fields):
+    first = True
+    unique_vals = defaultdict(set)
+    print path
+    for lines in read_tsv_online(path):
+        print "in here"
+        if first:
+            header = lines.pop(0)
+            first = False
+            idxs = [header.index(x) for x in fields]
+
+        for line in lines:
+            for idx in idxs:
+                unique_vals[header[idx]].add(line[idx])
+    print "inhere"
+    return unique_vals
 
 def distinct_values(data, idxs):
     results = []
@@ -170,6 +188,39 @@ if __name__ == '__main__':
         print len(chunk)
         print "in here"
     '''
+
+    ''' unique vals '''
+    ALL_CATEGORIES = ["ACCOUNTID","CAMPAIGNID","PLACEMENTID", "CREATIVEID","CREATIVETYPE",
+
+                      "PLATFORM", "PLATFORMVERSION", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE",
+
+                      "DEVICEORIENTATION", "SDK", "NETWORKTYPE", "CDNNAME",
+
+                      "EXTERNALADSERVER", "EXTERNALCREATIVEID", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
+                      "EXTERNALSUPPLIERID",
+
+                      "GEOIP_TIMEZONE", "GEOIP_COUNTRY", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
+                      "GEOIP_METROCODE", "GEOIP_DMACODE",
+
+                      "UA_HARDWARETYPE", "UA_DEVICETYPE",  "UA_MOBILEDEVICE", "UA_PLATFORM", "UA_PLATFORMVERSION",
+                      "UA_VENDOR", "UA_MODEL", "UA_OS", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
+                      "UA_BROWSERRENDERINGENGINE"
+                     ]
+
+    ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH]"]
+
+    JSON = ["FILESJSON", "ERRORSJSON"]
+
+    TIMESTAMPS = ["TIMESTAMP"]
+    GEO = ["GEOIP_LNG", "GEOIP_LAT"]
+
+    #uv = unique_vals("/home/peterus/Projects/mfrik/ccdm_medium.tsv", ALL_CATEGORIES)
+    uv = unique_vals("/home/peterus/Downloads/ccdm_large.tsv", ALL_CATEGORIES)
+
+    for key,val in uv.items():
+        print key, len(val)
+
+    END()
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
     data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
