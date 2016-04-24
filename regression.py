@@ -36,3 +36,17 @@ if __name__ == "__main__":
     clf.fit(x, y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
+
+'''
+Regression
+sklearn.linear_model.SGDRegressor
+sklearn.linear_model.PassiveAggressiveRegressor
+
+Clustering
+sklearn.cluster.MiniBatchKMeans
+
+Decomposition / feature Extraction
+sklearn.decomposition.MiniBatchDictionaryLearning
+sklearn.decomposition.IncrementalPCA
+sklearn.cluster.MiniBatchKMeans
+'''
