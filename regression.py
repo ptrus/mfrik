@@ -43,7 +43,7 @@ if __name__ == "__main__":
     reg = linear_model.Ridge()
     parameters = {'alpha': [0.1, 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70]}
 
-    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=5)
+    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
     clf.fit(x, y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
     parameters = {'n_neighbors': ns}
     knn = KNeighborsRegressor()
-    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=5)
+    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
     clf.fit(x[:,11].reshape(-1,1), y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
     parameters = {'n_neighbors': ns}
     knn = KNeighborsRegressor()
-    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=5)
+    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
     clf.fit(x[:,12:13], y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
