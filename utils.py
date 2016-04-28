@@ -78,11 +78,11 @@ def read_tsv_online(path, header=True, maxmemusage=95):
                 print psutil.virtual_memory()
         yield buffer
 
-def file_apply(inpath, outpath, header=True, fn=id):
+def file_apply(inpath, outpath, headerfn=None, fn=id):
     with open(outpath, 'w') as fout:
         with open(inpath) as fin:
-            if header:
-                fout.write(fin.readline())
+            if headerfn is not None:
+                fout.write(headerfn(fin.readline()))
             for line in fin:
                 fout.write(fn(line))
 
@@ -238,9 +238,14 @@ def remove_outliers(data, idx):
     return data
 
 if __name__ == '__main__':
+    #base="D:\\mfrik\\"
+    base="/home/peterus/Projects/mfrik/"
+    file_apply("/home/peterus/Downloads/ccdm_large.tsv", base+"out_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
+               fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
+
     #shuffle_file("/home/peterus/Downloads/ccdm_large.tsv", "/home/peterus/Downloads/ccdm_large-shuffled.tsv", 2450001)
     #pass_file("/home/peterus/Downloads/ccdm_test.tsv", lambda x: print_time(x.strip().split('\t')[5]))
-    #END()
+    END()
     '''
     for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
         print len(chunk)

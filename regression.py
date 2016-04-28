@@ -11,31 +11,31 @@ import scipy as sp
 from sklearn.linear_model import SGDRegressor
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn_utils import rmse_scorrer
 
 if __name__ == "__main__":
-    data,h = utils.read_tsv("D:\\mfrik\\outALL.tsv")
+    #base="D:\\mfrik\\"
+    base="/home/peterus/Projects/mfrik/"
+    data,h = utils.read_tsv(base+"outALL.tsv")
 
     x,y = data[:,1:],data[:,0]
-    print np.any(x == 'null')
     x[x=='null'] = '0'
-    print np.any(x=='null')
     x = x.astype(float)
     y = y.astype(float)
 
     print h[1:], h[0]
     print x.shape, y.shape
 
-    ss = StandardScaler()
-    x = ss.fit_transform(x)
+    #ss = StandardScaler()
+    #x = ss.fit_transform(x)
 
     sel = VarianceThreshold()
     x = sel.fit_transform(x)
     print x.shape
 
-    x,y = shuffle(x,y, random_state=42)
-
+    x,y = shuffle(x,y)
+    '''
     pca = PCA(0.8)
     x2 = pca.fit_transform(x)
     print x2.shape
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     #quick plot
     #n, bins, patches = plt.hist(y, 50, normed=1, facecolor='green', alpha=0.75)
     #plt.show()
-
+    '''
     #quick kmeans
     km = KMeans(n_clusters=4)
     km.fit(np.reshape(y, (len(y), 1)))
@@ -82,6 +82,7 @@ if __name__ == "__main__":
     #quick feature selection for outliers
     y = km.labels_
 
+    '''
     from sklearn.ensemble import ExtraTreesClassifier
     forest = ExtraTreesClassifier(n_estimators=500,
                               random_state=0, n_jobs=-1)
@@ -94,20 +95,38 @@ if __name__ == "__main__":
     print("Feature ranking:")
     for f in range(x.shape[1]):
         print("%d. feature %d (%f) - %s" % (f + 1, indices[f], importances[indices[f]], h[indices[f]+1]))
-
-    ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
-    parameters = {'n_neighbors': ns}
+    '''
+    data,h = utils.read_tsv(base+"out_timestamp.tsv")
+    print data.shape
+    data = utils.remove_outliers(data, 0)
+    print data.shape
+    x,y = data[:,1:],data[:,0]
+    x = x.astype(float)
+    y = y.astype(float)
+    print x.shape, y.shape
+    #ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
+    ns = [50, 100,500, 1000,2000,10000,50000]
+    parameters = {'n_neighbors': ns, 'weights': ['uniform', 'distance']}
     knn = KNeighborsRegressor()
-    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
-    clf.fit(x[:,11].reshape(-1,1), y)
+    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x.reshape(-1,1), y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
 
+    parameters = {'radius' : [1.0, 10.0, 100.0, 200.0], 'weights': ['uniform', 'distance']}
+    rnn = RadiusNeighborsRegressor()
+    clf = GridSearchCV(rnn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x.reshape(-1,1), y)
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+
+    END()
     ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
     parameters = {'n_neighbors': ns}
-    knn = KNeighborsRegressor()
-    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
-    clf.fit(x[:,12:13], y)
+    knn = KNeighborsRegressor(metric="haversine")
+    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=10, cv=2)
+    print x[:,12:14].shape
+    clf.fit(x[:,12:14], y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
 
