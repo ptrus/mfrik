@@ -20,21 +20,6 @@ def pass_file(path, fn):
         for line in f:
             fn(line)
 
-def shuffle_file(in_path, out_path, n_lines, header=True):
-    with open(out_path, 'w') as out:
-        numbers = list(range(n_lines))
-        # Copy header
-        if header:
-            out.write(linecache.getline(in_path, 0))
-            n_lines -= 1
-
-        for i in range(n_lines):
-            idx = randint(0, n_lines-i-1)
-            if header: idx += 1
-            n = numbers.pop(idx)
-            # Write line n, to output
-            out.write(linecache.getline(in_path, n))
-
 def getlines(path, lines):
     x = []
     for line in lines:
@@ -70,13 +55,29 @@ def read_tsv_online(path, header=True, maxmemusage=95):
                 print (len(buffer))
                 print psutil.virtual_memory()
                 print "out"
-                yield buffer
+                yield np.array(buffer)
                 del buffer
                 buffer = []
                 gc.collect()
                 print "in"
                 print psutil.virtual_memory()
         yield buffer
+
+def read_tsv_batch(path, first_line=True, batchsize=100):
+    with open(path) as f:
+        batch = []
+        cntr = 0
+        if not first_line:
+            f.readline()
+        for line in f:
+            batch.append(line.strip().split('\t'))
+            cntr += 1
+            if cntr == batchsize:
+                yield np.array(batch)
+                del batch
+                batch = []
+                gc.collect()
+        yield np.array(batch)
 
 def file_apply(inpath, outpath, headerfn=None, fn=id):
     with open(outpath, 'w') as fout:
@@ -225,6 +226,10 @@ def parse_timestamp(data, h, idx):
     data = np.append(data, alteranivestamp, 1)
     return data, h + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute", "timestamp_second", "timestamp_alteranivestamp"]
 
+def timestamp(str):
+    d = datetime.fromtimestamp(float(str))
+    return (((((d.day * 24 + d.hour) * 60) + d.minute) * 60 + d.second) * 1000000) + d.microsecond
+
 def print_time(ts):
     d = datetime.fromtimestamp(float(ts))
     print d.year, d.month, d.day, d.hour, d.minute
@@ -232,59 +237,55 @@ def print_time(ts):
 def remove_outliers(data, idx):
     #mean = np.mean(data[:,idx].astype(float))
     #var = np.mean(data[:,idx].astype(float))
+    print data[:, idx]
     devet6 = np.percentile(data[:,idx].astype(float), 96)
     mask = np.array([float(data[i,idx]) < devet6  for i in range(data.shape[0])])
     data = data[mask]
     return data
 
-if __name__ == '__main__':
-    #base="D:\\mfrik\\"
-    base="/home/peterus/Projects/mfrik/"
-    file_apply("/home/peterus/Downloads/ccdm_large-shuffled.tsv", base+"out_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
-               fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
 
-    #shuffle_file("/home/peterus/Downloads/ccdm_large.tsv", "/home/peterus/Downloads/ccdm_large-shuffled.tsv", 2450001)
+ONE_UNIQUE_VAL = ["EXTERNALCREATIVEID"]
+# All distinct values are in test set
+TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
+                "INTENDEDDEVICETYPE", "CDNNAME", "EXTERNALADSERVER", "NETWORKTYPE",
+                "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"]  # + "GEOIP_METROCODE", "GEOIP_DMACODE",
+ALL_CATEGORIES = ["ACCOUNTID", "CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "CREATIVETYPE",
+
+                  "PLATFORM", "PLATFORMVERSION", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE",
+
+                  "DEVICEORIENTATION", "SDK", "NETWORKTYPE", "CDNNAME",
+
+                  "EXTERNALADSERVER", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
+                  "EXTERNALSUPPLIERID",
+
+                  "GEOIP_TIMEZONE", "GEOIP_COUNTRY", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
+                  "GEOIP_METROCODE", "GEOIP_DMACODE",
+
+                  "UA_HARDWARETYPE", "UA_DEVICETYPE", "UA_PLATFORM", "UA_PLATFORMVERSION",
+                  "UA_VENDOR", "UA_MODEL", "UA_OS", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
+                  "UA_BROWSERRENDERINGENGINE"
+                  ]
+BINARY = ["UA_MOBILEDEVICE"]
+ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH"]
+JSON = ["FILESJSON", "ERRORSJSON"]
+TIMESTAMPS = ["TIMESTAMP"] + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute",
+                              "timestamp_second", "timestamp_alteranivestamp"]
+GEO = ["GEOIP_LNG", "GEOIP_LAT"]
+TARGET = "ADLOADINGTIME"
+
+if __name__ == '__main__':
+    base="D:\\mfrik\\"
+    #base="/home/peterus/Projects/mfrik/"
+    #file_apply(base+"/ccdm_medium.tsv", base+"out_medium_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
+    #           fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
+
     #pass_file("/home/peterus/Downloads/ccdm_test.tsv", lambda x: print_time(x.strip().split('\t')[5]))
-    END()
+
     '''
     for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
         print len(chunk)
         print "in here"
     '''
-
-    ONE_UNIQUE_VAL = ["EXTERNALCREATIVEID"]
-
-
-    # All distinct values are in test set
-    TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
-                      "INTENDEDDEVICETYPE",  "CDNNAME",  "EXTERNALADSERVER", "NETWORKTYPE",
-                      "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"] # + "GEOIP_METROCODE", "GEOIP_DMACODE",
-
-    ALL_CATEGORIES = ["ACCOUNTID","CAMPAIGNID","PLACEMENTID", "CREATIVEID","CREATIVETYPE",
-
-                      "PLATFORM", "PLATFORMVERSION", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE",
-
-                      "DEVICEORIENTATION", "SDK", "NETWORKTYPE", "CDNNAME",
-
-                      "EXTERNALADSERVER", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
-                      "EXTERNALSUPPLIERID",
-
-                      "GEOIP_TIMEZONE", "GEOIP_COUNTRY", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
-                      "GEOIP_METROCODE", "GEOIP_DMACODE",
-
-                      "UA_HARDWARETYPE", "UA_DEVICETYPE", "UA_PLATFORM", "UA_PLATFORMVERSION",
-                      "UA_VENDOR", "UA_MODEL", "UA_OS", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
-                      "UA_BROWSERRENDERINGENGINE"
-                     ]
-
-    BINARY = ["UA_MOBILEDEVICE"]
-
-    ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH"]
-
-    JSON = ["FILESJSON", "ERRORSJSON"]
-
-    TIMESTAMPS = ["TIMESTAMP"] + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute", "timestamp_second", "timestamp_alteranivestamp"]
-    GEO = ["GEOIP_LNG", "GEOIP_LAT"]
 
 
     '''
