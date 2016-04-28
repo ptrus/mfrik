@@ -4,7 +4,52 @@ import time
 from datetime import datetime
 import psutil
 import gc
-from collections import defaultdict
+from collections import defaultdict, Counter
+import linecache
+
+from random import randint
+
+def stats(target):
+    # TODO.
+    # Get min, max, for fixing the results
+    pass
+
+def pass_file(path, fn):
+    with open(path, 'r') as f:
+        f.readline()
+        for line in f:
+            fn(line)
+
+def shuffle_file(in_path, out_path, n_lines, header=True):
+    with open(out_path, 'w') as out:
+        numbers = list(range(n_lines))
+        # Copy header
+        if header:
+            out.write(linecache.getline(in_path, 0))
+            n_lines -= 1
+
+        for i in range(n_lines):
+            idx = randint(0, n_lines-i-1)
+            if header: idx += 1
+            n = numbers.pop(idx)
+            # Write line n, to output
+            out.write(linecache.getline(in_path, n))
+
+def getlines(path, lines):
+    x = []
+    for line in lines:
+        x.append(linecache.getline(path, line))
+    return x
+
+def merge_dicts(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
@@ -15,7 +60,7 @@ def read_tsv(path, header=True):
             data.append(line.strip().split('\t'))
     return np.array(data),h if header else np.array(data)
 
-def read_tsv_online(path, header=True, maxmemusage=80):
+def read_tsv_online(path, header=True, maxmemusage=95):
     with open(path) as f:
         buffer = []
         for line in f:
@@ -36,6 +81,8 @@ def read_tsv_online(path, header=True, maxmemusage=80):
 def file_apply(inpath, outpath, header=True, fn=id):
     with open(outpath, 'w') as fout:
         with open(inpath) as fin:
+            if header:
+                fout.write(fin.readline())
             for line in fin:
                 fout.write(fn(line))
 
@@ -45,12 +92,10 @@ def write_tsv(path, data, header):
         for line in data:
             f.write('\t'.join([str(x) for x in line]) + "\n")
 
-def unique_vals(path, fields):
+def unique_vals(path, fields, unique_vals = defaultdict(set)):
     first = True
-    unique_vals = defaultdict(set)
     print path
     for lines in read_tsv_online(path):
-        print "in here"
         if first:
             header = lines.pop(0)
             first = False
@@ -59,7 +104,6 @@ def unique_vals(path, fields):
         for line in lines:
             for idx in idxs:
                 unique_vals[header[idx]].add(line[idx])
-    print "inhere"
     return unique_vals
 
 def distinct_values(data, idxs):
@@ -148,31 +192,42 @@ def parse_timestamp(data, h, idx):
     dayofmonth = []
     dayofweek = []
     hour = []
-    year = []
-    month = []
+    #year = []
+    #month = []
     minute = []
+    second = []
+    alteranivestamp = []
     for j in data[:, idx]:
         d = datetime.fromtimestamp(float(j))
         dayofmonth.append(d.day)
         dayofweek.append(d.weekday())
         hour.append(d.hour)
-        month.append(d.month)
-        year.append(d.year)
+        #month.append(d.month)
+        #year.append(d.year)
         minute.append(d.minute)
+        second.append(d.second)
+        alteranivestamp.append((((((d.day * 24 + d.hour) * 60) + d.minute) * 60 + d.second) * 1000000) + d.microsecond)
     dayofmonth = np.array(dayofmonth).reshape(len(dayofmonth), 1)
     dayofweek = np.array(dayofweek).reshape(len(dayofweek), 1)
     hour = np.array(hour).reshape(len(hour), 1)
-    month = np.array(month).reshape(len(month), 1)
-    year = np.array(year).reshape(len(year), 1)
+    #month = np.array(month).reshape(len(month), 1)
+    #year = np.array(year).reshape(len(year), 1)
     minute = np.array(minute).reshape(len(minute), 1)
+    second = np.array(second).reshape(len(second), 1)
+    alteranivestamp = np.array(alteranivestamp).reshape(len(alteranivestamp), 1)
     data = np.append(data, dayofmonth, 1)
     data = np.append(data, dayofweek, 1)
     data = np.append(data, hour, 1)
-    data = np.append(data, month, 1)
-    data = np.append(data, year, 1)
+    #data = np.append(data, month, 1)
+    #data = np.append(data, year, 1)
     data = np.append(data, minute, 1)
-    return data, h + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_month", "timestamp_year", "timestamp_minute"]
+    data = np.append(data, second, 1)
+    data = np.append(data, alteranivestamp, 1)
+    return data, h + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute", "timestamp_second", "timestamp_alteranivestamp"]
 
+def print_time(ts):
+    d = datetime.fromtimestamp(float(ts))
+    print d.year, d.month, d.day, d.hour, d.minute
 
 def remove_outliers(data, idx):
     #mean = np.mean(data[:,idx].astype(float))
@@ -183,29 +238,41 @@ def remove_outliers(data, idx):
     return data
 
 if __name__ == '__main__':
+    #shuffle_file("/home/peterus/Downloads/ccdm_large.tsv", "/home/peterus/Downloads/ccdm_large-shuffled.tsv", 2450001)
+    #pass_file("/home/peterus/Downloads/ccdm_test.tsv", lambda x: print_time(x.strip().split('\t')[5]))
+    #END()
     '''
     for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
         print len(chunk)
         print "in here"
     '''
 
-    ''' unique vals '''
+    ONE_UNIQUE_VAL = ["EXTERNALCREATIVEID"]
+
+
+    # All distinct values are in test set
+    TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
+                      "INTENDEDDEVICETYPE", "GEOIP_METROCODE", "CDNNAME", "GEOIP_DMACODE", "EXTERNALADSERVER", "NETWORKTYPE",
+                      "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"]
+
     ALL_CATEGORIES = ["ACCOUNTID","CAMPAIGNID","PLACEMENTID", "CREATIVEID","CREATIVETYPE",
 
                       "PLATFORM", "PLATFORMVERSION", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE",
 
                       "DEVICEORIENTATION", "SDK", "NETWORKTYPE", "CDNNAME",
 
-                      "EXTERNALADSERVER", "EXTERNALCREATIVEID", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
+                      "EXTERNALADSERVER", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
                       "EXTERNALSUPPLIERID",
 
                       "GEOIP_TIMEZONE", "GEOIP_COUNTRY", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
                       "GEOIP_METROCODE", "GEOIP_DMACODE",
 
-                      "UA_HARDWARETYPE", "UA_DEVICETYPE",  "UA_MOBILEDEVICE", "UA_PLATFORM", "UA_PLATFORMVERSION",
+                      "UA_HARDWARETYPE", "UA_DEVICETYPE", "UA_PLATFORM", "UA_PLATFORMVERSION",
                       "UA_VENDOR", "UA_MODEL", "UA_OS", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
                       "UA_BROWSERRENDERINGENGINE"
                      ]
+
+    BINARY = ["UA_MOBILEDEVICE"]
 
     ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH]"]
 
@@ -214,16 +281,19 @@ if __name__ == '__main__':
     TIMESTAMPS = ["TIMESTAMP"]
     GEO = ["GEOIP_LNG", "GEOIP_LAT"]
 
-    #uv = unique_vals("/home/peterus/Projects/mfrik/ccdm_medium.tsv", ALL_CATEGORIES)
-    uv = unique_vals("/home/peterus/Downloads/ccdm_large.tsv", ALL_CATEGORIES)
 
-    for key,val in uv.items():
+    '''
+    #unique vals
+    uv0 = unique_vals("/home/peterus/Projects/mfrik/ccdm_medium.tsv", ALL_CATEGORIES)
+    uv1 = unique_vals("/home/peterus/Downloads/ccdm_large.tsv", ALL_CATEGORIES, uv0)
+    uv2 = unique_vals("/home/peterus/Downloads/ccdm_test.tsv", ALL_CATEGORIES, uv1)
+
+    for key,val in uv2.items():
         print key, len(val)
-
-    END()
+    '''
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
-    data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
+    data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_medium.tsv")
     #data, h = read_tsv("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv")
     print 100*(time.time()-tick)
     #output_distinct(data, h)
@@ -232,16 +302,23 @@ if __name__ == '__main__':
 
     data, h = parse_timestamp(data, h, h.index("TIMESTAMP"))
 
+    '''
     selected = ["ADLOADINGTIME", "PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
                     "CREATIVETYPE", "TIMESTAMP", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH", "TOPMOSTREACHABLEWINDOWHEIGHT",
                 "TOPMOSTREACHABLEWINDOWWIDTH", "FILESJSON", "ERRORSJSON", "EXTERNALCREATIVEID", "NETWORKTYPE",
                 "timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_month", "timestamp_year",
                 "timestamp_minute"]
+    '''
+    selected = ALL_CATEGORIES + BINARY + ALL_CONTINIOUS + JSON + TIMESTAMPS + GEO
     selectedidx = [h.index(s) for s in selected]
     data = data[:, selectedidx]
     h = selected
+
+    '''
     disc_attrs = ["PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
                     "CREATIVETYPE", "EXTERNALCREATIVEID", "NETWORKTYPE", "timestamp_dayofweek"]
+    '''
+    disc_attrs = ALL_CATEGORIES + ["timestamp_dayofweek"]
     print data.shape
     print h
     for d in disc_attrs:
@@ -255,4 +332,4 @@ if __name__ == '__main__':
 
     data, h = parse_errorjson(data, h, h.index("ERRORSJSON"))
     print data.shape
-    #write_tsv("D:\\mfrik\\out.tsv", data, h)
+    write_tsv("/home/peterus/Projects/mfrik/outALL.tsv", data, h)
