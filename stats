@@ -14,7 +14,7 @@ FEATURES PREPROCESS:
 - parse JSONS
 
 todo:
-- geoloc
+- geoloc!!
 - cluster based on target
     - find similarities within clusters
     - predict extreme values (after removing extreme extremes)

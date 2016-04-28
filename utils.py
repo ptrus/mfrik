@@ -252,8 +252,8 @@ if __name__ == '__main__':
 
     # All distinct values are in test set
     TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
-                      "INTENDEDDEVICETYPE", "GEOIP_METROCODE", "CDNNAME", "GEOIP_DMACODE", "EXTERNALADSERVER", "NETWORKTYPE",
-                      "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"]
+                      "INTENDEDDEVICETYPE",  "CDNNAME",  "EXTERNALADSERVER", "NETWORKTYPE",
+                      "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"] # + "GEOIP_METROCODE", "GEOIP_DMACODE",
 
     ALL_CATEGORIES = ["ACCOUNTID","CAMPAIGNID","PLACEMENTID", "CREATIVEID","CREATIVETYPE",
 
@@ -274,11 +274,11 @@ if __name__ == '__main__':
 
     BINARY = ["UA_MOBILEDEVICE"]
 
-    ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH]"]
+    ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH"]
 
     JSON = ["FILESJSON", "ERRORSJSON"]
 
-    TIMESTAMPS = ["TIMESTAMP"]
+    TIMESTAMPS = ["TIMESTAMP"] + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute", "timestamp_second", "timestamp_alteranivestamp"]
     GEO = ["GEOIP_LNG", "GEOIP_LAT"]
 
 
@@ -293,7 +293,7 @@ if __name__ == '__main__':
     '''
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
-    data,h = read_tsv("/home/peterus/Projects/mfrik/ccdm_medium.tsv")
+    data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
     #data, h = read_tsv("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv")
     print 100*(time.time()-tick)
     #output_distinct(data, h)
@@ -309,7 +309,7 @@ if __name__ == '__main__':
                 "timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_month", "timestamp_year",
                 "timestamp_minute"]
     '''
-    selected = ALL_CATEGORIES + BINARY + ALL_CONTINIOUS + JSON + TIMESTAMPS + GEO
+    selected = ["ADLOADINGTIME"] + TEST_SET_ALL + BINARY + ALL_CONTINIOUS + JSON + TIMESTAMPS + GEO
     selectedidx = [h.index(s) for s in selected]
     data = data[:, selectedidx]
     h = selected
@@ -318,7 +318,7 @@ if __name__ == '__main__':
     disc_attrs = ["PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",
                     "CREATIVETYPE", "EXTERNALCREATIVEID", "NETWORKTYPE", "timestamp_dayofweek"]
     '''
-    disc_attrs = ALL_CATEGORIES + ["timestamp_dayofweek"]
+    disc_attrs = TEST_SET_ALL
     print data.shape
     print h
     for d in disc_attrs:
@@ -332,4 +332,4 @@ if __name__ == '__main__':
 
     data, h = parse_errorjson(data, h, h.index("ERRORSJSON"))
     print data.shape
-    write_tsv("/home/peterus/Projects/mfrik/outALL.tsv", data, h)
+    write_tsv("D:\\mfrik\\outALL.tsv", data, h)

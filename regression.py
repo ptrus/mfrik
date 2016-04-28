@@ -15,9 +15,12 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn_utils import rmse_scorrer
 
 if __name__ == "__main__":
-    data,h = utils.read_tsv("/home/peterus/Projects/mfrik/out.tsv")
+    data,h = utils.read_tsv("D:\\mfrik\\outALL.tsv")
 
     x,y = data[:,1:],data[:,0]
+    print np.any(x == 'null')
+    x[x=='null'] = '0'
+    print np.any(x=='null')
     x = x.astype(float)
     y = y.astype(float)
 
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     y = km.labels_
 
     from sklearn.ensemble import ExtraTreesClassifier
-    forest = ExtraTreesClassifier(n_estimators=250,
+    forest = ExtraTreesClassifier(n_estimators=500,
                               random_state=0, n_jobs=-1)
 
     forest.fit(x, y)
@@ -96,10 +99,17 @@ if __name__ == "__main__":
     parameters = {'n_neighbors': ns}
     knn = KNeighborsRegressor()
     clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=5)
-    clf.fit(x[:,0].reshape(-1,1), y)
+    clf.fit(x[:,11].reshape(-1,1), y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
 
+    ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
+    parameters = {'n_neighbors': ns}
+    knn = KNeighborsRegressor()
+    clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=5)
+    clf.fit(x[:,12:13], y)
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
 
 '''
 Regression
