@@ -240,7 +240,7 @@ def remove_outliers(data, idx):
 if __name__ == '__main__':
     #base="D:\\mfrik\\"
     base="/home/peterus/Projects/mfrik/"
-    file_apply("/home/peterus/Downloads/ccdm_large.tsv", base+"out_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
+    file_apply("/home/peterus/Downloads/ccdm_large-shuffled.tsv", base+"out_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
                fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
 
     #shuffle_file("/home/peterus/Downloads/ccdm_large.tsv", "/home/peterus/Downloads/ccdm_large-shuffled.tsv", 2450001)
