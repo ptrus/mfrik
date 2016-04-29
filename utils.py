@@ -6,8 +6,13 @@ import psutil
 import gc
 from collections import defaultdict, Counter
 import linecache
+from sklearn.feature_extraction import FeatureHasher
 
 from random import randint
+
+def rmse(y_true, y_pred):
+    output_errors = np.average((y_true - y_pred) ** 2, axis=0)
+    return -np.sqrt(output_errors)
 
 def stats(target):
     # TODO.
@@ -45,7 +50,7 @@ def read_tsv(path, header=True):
             data.append(line.strip().split('\t'))
     return np.array(data),h if header else np.array(data)
 
-def read_tsv_online(path, header=True, maxmemusage=95):
+def read_tsv_online(path, maxmemusage=95):
     with open(path) as f:
         buffer = []
         for line in f:
@@ -61,7 +66,7 @@ def read_tsv_online(path, header=True, maxmemusage=95):
                 gc.collect()
                 print "in"
                 print psutil.virtual_memory()
-        yield buffer
+        yield np.array(buffer)
 
 def read_tsv_batch(path, first_line=True, batchsize=100):
     with open(path) as f:
@@ -77,6 +82,7 @@ def read_tsv_batch(path, first_line=True, batchsize=100):
                 del batch
                 batch = []
                 gc.collect()
+                cntr = 0
         yield np.array(batch)
 
 def file_apply(inpath, outpath, headerfn=None, fn=id):
@@ -290,16 +296,31 @@ if __name__ == '__main__':
 
     '''
     #unique vals
-    uv0 = unique_vals("/home/peterus/Projects/mfrik/ccdm_medium.tsv", ALL_CATEGORIES)
-    uv1 = unique_vals("/home/peterus/Downloads/ccdm_large.tsv", ALL_CATEGORIES, uv0)
-    uv2 = unique_vals("/home/peterus/Downloads/ccdm_test.tsv", ALL_CATEGORIES, uv1)
+    uv0 = unique_vals(base + "ccdm_medium.tsv", ALL_CATEGORIES)
+    uv1 = unique_vals("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv", ALL_CATEGORIES, uv0)
+    uv2 = unique_vals("C:\\Users\\Peter\\Downloads\\\ccdm_test.tsv\\ccdm_test.tsv", ALL_CATEGORIES, uv1)
 
-    for key,val in uv2.items():
-        print key, len(val)
+    with open(base + 'discrete_values.txt', 'w') as f:
+        for key,val in uv2.items():
+            f.write(key + " = [")
+            val = ['"' + v + '"' for v in val]
+            f.write(','.join(val) + ']\n\n\n')
     '''
+    #END()
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
     data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
+    fh = FeatureHasher(input_type='string')
+
+    output = []
+    for row in data:
+        output.append([bytes(row[id]) for id,hid in enumerate(h)])
+    print "here", output[0]
+    x = fh.transform(output)
+    print "in here"
+    print x.shape
+    END()
+
     #data, h = read_tsv("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv")
     print 100*(time.time()-tick)
     #output_distinct(data, h)

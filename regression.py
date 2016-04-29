@@ -56,8 +56,8 @@ if __name__ == "__main__":
     y_train = y[:-100]
     sgd = SGDRegressor(alpha=30, penalty="l2")
     min,max = np.min(y_test), np.max(y_test)
-    for i in range(1000):
-        batch = 20
+    for i in range(100):
+        batch = 1000
         for k in range(0, (len(x_train)/batch)-1):
             _x = x_train[batch*k:batch*k + batch]
             _y = y_train[batch*k:batch*k + batch]
@@ -79,12 +79,13 @@ if __name__ == "__main__":
     km.fit(np.reshape(y, (len(y), 1)))
     print km.cluster_centers_
     #quick feature selection for outliers
-    y = km.labels_
+    #y = km.labels_
 
-    '''
+
     from sklearn.ensemble import ExtraTreesClassifier
-    forest = ExtraTreesClassifier(n_estimators=500,
-                              random_state=0, n_jobs=-1)
+    from sklearn.ensemble import ExtraTreesRegressor
+    forest = ExtraTreesRegressor(n_estimators=500,
+                              random_state=33, n_jobs=-1)
 
     forest.fit(x, y)
     importances = forest.feature_importances_
@@ -94,7 +95,13 @@ if __name__ == "__main__":
     print("Feature ranking:")
     for f in range(x.shape[1]):
         print("%d. feature %d (%f) - %s" % (f + 1, indices[f], importances[indices[f]], h[indices[f]+1]))
-    '''
+
+    clf = GridSearchCV(forest, {}, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x, y)
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+
+    end()
     data,h = utils.read_tsv(base+"out_medium_timestamp.tsv")
     data = utils.remove_outliers(data, 0)
     print data.shape
