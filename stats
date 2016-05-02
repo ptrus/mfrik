@@ -47,3 +47,13 @@ todo:
     i) Zeroes were treated as missing values and mice imputation was applied on training and test set separately.
 
 """
+
+Dodaj: - povprecna vrednost od accounta
+       - povprecna vrednost od CDNNAME
+       - povprecna vrednost SDK
+       - povprecna vrednost za timeframe
+       - povprecna vrednost PLATFORM (PLATFORM_IOS - zgleda dobr)
+       - povprecna vrednost CREATIVETYPE_Interscroller
+       - povprecna vrednost EXTERNALADSERVER?
+       - povprecna UA_DEVICETYPE?
+       - number of nulls?

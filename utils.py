@@ -7,6 +7,8 @@ import gc
 from collections import defaultdict, Counter
 import linecache
 from sklearn.feature_extraction import FeatureHasher
+from sklearn.linear_model import SGDRegressor
+import discrete_values_map as m
 
 from random import randint
 
@@ -18,6 +20,18 @@ def stats(target):
     # TODO.
     # Get min, max, for fixing the results
     pass
+
+def sums(data, idx, targetidx, fields): # Create sklearn preprocess
+    temp = {f: 0 for f in fields}
+    counts = {f: 0 for f in fields}
+    for row in data:
+        temp[row[idx]] += float(row[targetidx])
+        counts[row[idx]] += 1
+    # fix zeros
+    counts = {key: 1 if val == 0 else val for key,val in counts.items()}
+    print counts
+    x = {key: val/counts[key] for key,val in temp.items()}
+    return x
 
 def pass_file(path, fn):
     with open(path, 'r') as f:
@@ -306,28 +320,52 @@ if __name__ == '__main__':
             val = ['"' + v + '"' for v in val]
             f.write(','.join(val) + ']\n\n\n')
     '''
-    #END()
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
     data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
+
+    '''
     fh = FeatureHasher(input_type='string')
 
     output = []
-    for row in data:
-        output.append([bytes(row[id]) for id,hid in enumerate(h)])
+    for row in data[:, 1:]:
+        output.append([bytes(row[id]) for id,hid in enumerate(h[1:])])
     print "here", output[0]
     x = fh.transform(output)
     print "in here"
     print x.shape
-    END()
+    y = data[:, 0]
+    y = np.array(y).astype(float)
+    '''
 
+    '''
+    # ONLINE LEARNinG
+    x_test = x[-100:]
+    y_test = y[-100:]
+    x_train = x[:-100]
+    y_train = y[:-100]
+    sgd = SGDRegressor(alpha=30, penalty="l2")
+    for i in range(100):
+        batch = 1000
+        for k in range(0, 40):
+            _x = x_train[batch * k:batch * k + batch]
+            _y = y_train[batch * k:batch * k + batch]
+            sgd.partial_fit(_x, _y)
+        pred = rmse(sgd.predict(x_test), y_test)
+        print pred
+    END()
+    '''
     #data, h = read_tsv("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv")
     print 100*(time.time()-tick)
     #output_distinct(data, h)
     #test_discretasize(data,h)
     data = remove_outliers(data, 0)
+    print h
 
-    data, h = parse_timestamp(data, h, h.index("TIMESTAMP"))
+    acc_sums = sums(data, 1, 0, m.ACCOUNTID)
+    print acc_sums
+    end()
+    #data, h = parse_timestamp(data, h, h.index("TIMESTAMP"))
 
     '''
     selected = ["ADLOADINGTIME", "PLATFORM", "INTENDEDDEVICETYPE", "ACTUALDEVICETYPE", "SDK", "DEVICEORIENTATION", "CDNNAME",

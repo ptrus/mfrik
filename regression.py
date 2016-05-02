@@ -35,11 +35,11 @@ if __name__ == "__main__":
     print x.shape
 
     x,y = shuffle(x,y)
-    '''
+
     pca = PCA(0.8)
     x2 = pca.fit_transform(x)
     print x2.shape
-
+    '''
     reg = linear_model.Ridge()
     parameters = {'alpha': [0.1, 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70]}
 
@@ -54,9 +54,8 @@ if __name__ == "__main__":
     y_test = y[-100:]
     x_train = x[:-100]
     y_train = y[:-100]
-    sgd = SGDRegressor(alpha=30, penalty="l2")
-    min,max = np.min(y_test), np.max(y_test)
-    for i in range(100):
+    sgd = SGDRegressor(alpha=1, penalty="l2")
+    for i in range(3):
         batch = 1000
         for k in range(0, (len(x_train)/batch)-1):
             _x = x_train[batch*k:batch*k + batch]
@@ -84,8 +83,8 @@ if __name__ == "__main__":
 
     from sklearn.ensemble import ExtraTreesClassifier
     from sklearn.ensemble import ExtraTreesRegressor
-    forest = ExtraTreesRegressor(n_estimators=500,
-                              random_state=33, n_jobs=-1)
+    forest = ExtraTreesRegressor(n_estimators=300,
+                        n_jobs=-1)
 
     forest.fit(x, y)
     importances = forest.feature_importances_
@@ -101,7 +100,6 @@ if __name__ == "__main__":
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
 
-    end()
     data,h = utils.read_tsv(base+"out_medium_timestamp.tsv")
     data = utils.remove_outliers(data, 0)
     print data.shape
@@ -120,11 +118,20 @@ if __name__ == "__main__":
     clf = GridSearchCV(dummy, {}, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
     clf.fit(x.reshape(-1,1), y)
     print "BASE:", clf.best_score_
+    '''
     ns = [5, 10, 20, 30, 50, 60, 70, 90, 100, 110, 120, 140, 160, 180, 200, 300, 400]
     parameters = {'n_neighbors': ns, 'weights': ['uniform']}#, 'distance']}
     knn = KNeighborsRegressor()
     clf = GridSearchCV(knn, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
     clf.fit(x.reshape(-1,1), y)
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+    '''
+    reg = linear_model.Ridge()
+    parameters = {'alpha': [0.001, 0.1, 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70]}
+
+    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x, y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
 
@@ -136,7 +143,7 @@ if __name__ == "__main__":
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
     '''
-    END()
+    '''
     ns = [1,2,3,4,5,10,20,30,50,60,70,90,100,110,120,140,160,180,200,300,400]
     parameters = {'n_neighbors': ns}
     knn = KNeighborsRegressor(metric="haversine")
@@ -145,7 +152,7 @@ if __name__ == "__main__":
     clf.fit(x[:,12:14], y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
-
+    '''
 '''
 Regression
 sklearn.linear_model.SGDRegressor
