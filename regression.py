@@ -13,10 +13,11 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn_utils import rmse_scorrer
+from sklearn_utils import GetTargetAverages
 
 if __name__ == "__main__":
-    base="D:\\mfrik\\"
-    #base="/home/peterus/Projects/mfrik/"
+    #base="D:\\mfrik\\"
+    base="/home/peterus/Projects/mfrik/"
     data,h = utils.read_tsv(base+"outALL.tsv")
 
     x,y = data[:,1:],data[:,0]
@@ -66,7 +67,6 @@ if __name__ == "__main__":
         #pred = sp.maximum(min, pred)
         #pred = sp.minimum(max, pred)
         #print "base:",mean_squared_error(y_test, np.repeat(sum(y_test)/len(y_test), len(y_test)))
-
 
     '''
     #quick plot

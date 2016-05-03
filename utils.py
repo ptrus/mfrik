@@ -294,8 +294,8 @@ GEO = ["GEOIP_LNG", "GEOIP_LAT"]
 TARGET = "ADLOADINGTIME"
 
 if __name__ == '__main__':
-    base="D:\\mfrik\\"
-    #base="/home/peterus/Projects/mfrik/"
+    #base="D:\\mfrik\\"
+    base="/home/peterus/Projects/mfrik/"
     #file_apply(base+"/ccdm_medium.tsv", base+"out_medium_timestamp.tsv", headerfn=lambda _: "ADLOADINGTIME\tTIMESTAMP\n",
     #           fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
 
@@ -322,7 +322,7 @@ if __name__ == '__main__':
     '''
     tick = time.time()
     #data,h = read_tsv("D:\\mfrik\\ccdm_01_public_sample.tsv")
-    data,h = read_tsv("D:\\mfrik\\ccdm_medium.tsv")
+    data,h = read_tsv(base + "ccdm_medium.tsv")
 
     '''
     fh = FeatureHasher(input_type='string')
@@ -364,7 +364,6 @@ if __name__ == '__main__':
 
     acc_sums = sums(data, 1, 0, m.ACCOUNTID)
     print acc_sums
-    end()
     #data, h = parse_timestamp(data, h, h.index("TIMESTAMP"))
 
     '''

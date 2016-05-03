@@ -57,3 +57,22 @@ Dodaj: - povprecna vrednost od accounta
        - povprecna vrednost EXTERNALADSERVER?
        - povprecna UA_DEVICETYPE?
        - number of nulls?
+
+"""
+    - log,sqrt scalings, anscombe transform
+    - knn
+
+-Feature 1: Distances to nearest neighbours of each classes
+-Feature 5: Distances to nearest neighbours of each classed in T-SNE space (3 dimensions)
+-Feature 6: Clustering features of original dataset!!
+-
+
+"""
+
+'''
+
+The main idea of my solution is stacking. Stacking helps you to combine different methods’ predictions of Y (or labels when it comes to multiclass problems) as “metafeatures”. Basically, to obtain metafeature for train, you split your data into K folds, training K models on K-1 parts while making prediction for 1 part that was left aside for each K-1 group. To obtain metafeature for test, you can average predictions from these K models or make single prediction based on all train data. After that you train metaclassifier on features & metafeatures and average predictions if you have several metaclassifiers.
+
+In the beginning of working on the competition I found useful to split data in two groups : (1) train & test, (2) TF-IDF(train) & TF-IDF(test). Many parts of my solution use these two groups in parallel.
+
+'''

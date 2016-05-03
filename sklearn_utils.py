@@ -2,6 +2,7 @@ import numpy as np
 from utils import rmse, read_tsv_online
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin
+from collections import defaultdict
 
 def rmse_scorrer(estimator, X, y_true):
     y_pred = estimator.predict(X)
@@ -39,18 +40,30 @@ def StandardScaler_inversetransform_col(ss, x, idx):
 
 
 class GetTargetAverages(TransformerMixin):
-    def __init__(self, idxs):
-        self.idxs = idxs
-        self.averages = {}
+    def __init__(self, idx):
+        self.idx = idx
+        self.sums = defaultdict(float)
+        self.counts = defaultdict(int)
 
-    def transform(self, X, y, *_):
+    def transform(self, X, *_):
         result = []
-        for index, rowdata in X.iterrows():
-            rowdict = {}
-            for kvp in self.kpairs:
-                rowdict.update( { rowdata[ kvp[0] ]: rowdata[ kvp[1] ] } )
-            result.append(rowdict)
-        return result
+        for row in X:
+            res = self.sums[row[self.idx]]
+            cnt  = self.counts[row[self.idx]]
+            cnt = cnt if cnt > 0 else 1
+            res = float(res) / cnt
+            new_row = np.append(row, [res])
+            result.append(new_row)
 
-    def fit(self, *_):
-        return self
+        return np.array(result)
+
+    def fit(self, X, y, *_):
+        for i,row in enumerate(X):
+            fval = row[self.idx]
+            tval = float(y[i])
+            self.sums[fval] += tval
+            self.counts[fval] += 1
+
+    def partial_fit(self, X, y, *_):
+        self.fit(X, y, _)
+
