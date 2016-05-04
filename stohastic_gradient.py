@@ -1,6 +1,6 @@
 from utils import read_tsv_batch, read_tsv, rmse, read_tsv_online, rmse
 from sklearn.linear_model import SGDRegressor
-from sklearn_utils import rmse_scorrer, StandardScaler_online_fit, StandarScaler_online_transform, StandardScaler_inversetransform_col
+from sklearn_utils import rmse_scorrer, StandardScaler_online_fit, StandarScaler_online_transform, StandardScaler_inversetransform_col, OnlineLearner
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.externals import joblib
@@ -47,6 +47,7 @@ def SGD_fit(train_path, n_iters, conv_test_x=[], conv_test_y=[], batchsize=1000,
 
     return sgd
 
+# TODO: make a submission to leaderboard.
 if __name__ == '__main__':
     #base = "D:\\mfrik\\"
     #base="/home/peterus/Projects/mfrik/"
@@ -72,6 +73,3 @@ if __name__ == '__main__':
         sgd = SGD_fit(base + "final_train-scaled.tsv", 10000, testX, testYT, 10000, alpha=alpha, postprocess=ss)
         #joblib.dump(sgd, base + 'sgd-fitted.pkl')
         #sgd = joblib.load(base + 'sgd-fitted.pkl')
-
-
-    #

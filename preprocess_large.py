@@ -3,6 +3,7 @@ import discrete_values_map as m
 import numpy as np
 import json
 from datetime import datetime
+from sklearn_utils import OnlineLearner
 
 # TODO: fix shuffle
 def get_percentile(path, idx=0, percentile=96):
@@ -215,5 +216,6 @@ if __name__ == '__main__':
     # PARSE TIMESTAMPS, discretasize, parse jsons, select fields
 
     preprocess(shuffled_path, preprocessed)
+
     # Create folds
     create_folds(preprocessed, base, 5, new_len)

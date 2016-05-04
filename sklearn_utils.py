@@ -1,9 +1,13 @@
 import numpy as np
-from utils import rmse, read_tsv_online
+from utils import rmse, read_tsv_online, read_tsv_batch
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin
 from collections import defaultdict
 from sklearn.neighbors import LSHForest, NearestNeighbors
+from sklearn.externals import joblib
+from cross_validation import get_train_test_folds_paths
+import copy
+
 
 def rmse_scorrer(estimator, X, y_true):
     y_pred = estimator.predict(X)
@@ -123,3 +127,31 @@ class GetTargetClosest(TransformerMixin):
         for parameter, value in parameters.items():
             setattr(self, parameter, value)
         return self
+
+class OnlineLearner():
+    def __init__(self, learner, batchsize, name, *_):
+        self.batchsize = batchsize
+        self.learner = learner
+        self.name = name
+
+    def online_fit(self, inpath):
+        for batch in read_tsv_batch(inpath, batchsize=self.batchsize):
+            self.learner.partial_fit(batch)
+        return self
+
+    def online_transform(self, inpath, outpath):
+        with open(outpath, 'a') as fout:
+            for batch in read_tsv_batch(inpath, batchsize=self.batchsize):
+                x_new = self.learner.transform(batch)
+                for row in x_new:
+                    row = [str(x) for x in row]
+                    fout.write('\t'.join(row) + '\n')
+
+    def save(self, path):
+        joblib.dump(self, path)
+
+    def load(self, path):
+        return joblib.load(path)
+
+    def duplicate(self):
+        return copy.copy(self)
