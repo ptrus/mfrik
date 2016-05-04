@@ -22,21 +22,21 @@ def remove_outliers(inpath, outpath, idx=0):
 
     first = True
     n_lines = 0
-    with open(outpath, 'w') as out:
-        for lines in utils.read_tsv_online(inpath):
-            if first:
-                header = lines.pop(0)
-                first = False
-                out.write('\t'.join(header) + '\n')
-
-            for line in lines:
-                if line[0] == "ADLOADINGTIME": continue # TODO FIX SHUFFLE
-                if float(line[idx]) >= percentile: continue
-                out.write('\t'.join(line) + '\n')
+    with open(outpath, 'w') as fout:
+        with open(inpath, 'r') as fin:
+            for line in fin:
+                if first:
+                    first = False
+                    if line.startswith("ADLOADINGTIME"):
+                        fout.write(line)
+                        continue
+                row = line.strip().split('\t')
+                if float(row[idx]) >= percentile: continue
+                fout.write(line)
                 n_lines += 1
 
     print "Lines remaining: %d" % (n_lines)
-
+    return n_lines
 
 def discreete_headers():
     return ['UA_DEVICETYPE_' + x for x in m.UA_DEVICETYPE] + ['DEVICEORIENTATION_' + x for x in m.DEVICEORIENTATION] +\
@@ -142,12 +142,14 @@ def preprocess(inpath, outpath):
     header_old = []
     first = True
     with open(outpath, 'w') as out:
-        for lines in utils.read_tsv_online(inpath):
-            for line in lines:
+        #for lines in utils.read_tsv_online(inpath, maxmemusage=80):
+        with open(inpath, 'r') as fin:
+            for line in fin:
+                line = np.array(line.strip().split('\t'))
                 if first:
                     first = False
                     out.write('\t'.join(header_new) + '\n')
-                    header_old = line
+                    header_old = line.tolist()
                     print header_old
                     target_idx = header_old.index(utils.TARGET)
                     continue
@@ -168,17 +170,50 @@ def preprocess(inpath, outpath):
                 assert len(new_line) == len(header_new)
                 out.write('\t'.join([str(x) for x in new_line]) + '\n')
 
+from os import path
+import uuid
+from shuffle import shuffle_file
+
+def create_folds(in_path, out_path, n_folds, n_lines):
+    f_length = int(n_lines / n_folds)
+    f_lengths = [f_length] * n_folds
+    if (sum(f_lengths) != n_lines):
+        f_lengths[-1] += (n_lines - sum(f_lengths))
+
+    print f_lengths
+    uid = str(uuid.uuid4())
+    hcount = 0
+    with open(in_path) as fin:
+        cnt = 0
+        for i in f_lengths:
+            cnt += 1
+            with open(path.join(out_path, uid+'-fold-' + str(cnt)), 'w') as fout:
+                j = 0
+                while j < i:
+                    line = fin.readline()
+                    if line and line[0].isalpha(): # Header
+                        hcount += 1
+                        continue
+                    j += 1
+                    fout.write(line)
+
+    assert hcount <= 1
+
 if __name__ == '__main__':
     # base = "/home/peterus/Downloads/"
-    base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
+    # base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
+    base = "C:\\Users\\peteru\\Downloads\\"
 
+
+    base_base = base + "cdm_all.tsv"
     shuffled_path = base + "ccdm_large-shuffled.tsv"
     without_outliers = base + "ccdm_large-shuffled-without-outliers.tsv"
-    #remove_outliers(shuffled_path, without_outliers, 0)
+    preprocessed = base+"ccdm_large_preprocessed.tsv"
 
+    new_len = remove_outliers(base_base, without_outliers, 0)
+    shuffle_file(without_outliers, shuffled_path, new_len)
     # PARSE TIMESTAMPS, discretasize, parse jsons, select fields
-    #preprocess(without_outliers, base+"ccdm_large_preprocessed.tsv")
 
-    #train_set = base + "ccdm_large_preprocessed.tsv"
-    # SPLIT
-    #split_train_test(train_set, base+"final")
+    preprocess(shuffled_path, preprocessed)
+    # Create folds
+    create_folds(preprocessed, base, 5, new_len)

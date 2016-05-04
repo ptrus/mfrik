@@ -14,10 +14,13 @@ from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn_utils import rmse_scorrer
 from sklearn_utils import GetTargetAverages
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
 
 if __name__ == "__main__":
     #base="D:\\mfrik\\"
-    base="/home/peterus/Projects/mfrik/"
+    #base="/home/peterus/Projects/mfrik/"
+    base="C:\\Users\\peteru\\mfrik\\"
     data,h = utils.read_tsv(base+"outALL.tsv")
 
     x,y = data[:,1:],data[:,0]
@@ -29,7 +32,7 @@ if __name__ == "__main__":
     print x.shape, y.shape
 
     ss = StandardScaler()
-    x = ss.fit_transform(x)
+    #x = ss.fit_transform(x)
 
     sel = VarianceThreshold()
     x = sel.fit_transform(x)
@@ -37,19 +40,30 @@ if __name__ == "__main__":
 
     x,y = shuffle(x,y)
 
-    pca = PCA(0.8)
-    x2 = pca.fit_transform(x)
-    print x2.shape
-    '''
-    reg = linear_model.Ridge()
-    parameters = {'alpha': [0.1, 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70]}
+    #pca = PCA(0.8)
+    #x2 = pca.fit_transform(x)
+    #print x2.shape
 
-    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=True, cv=2)
+    reg = linear_model.Ridge()
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000])
+    p = Pipeline([('ss', ss), ('reg',reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
     clf.fit(x, y)
+    print "Ridge normal:"
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
-    '''
 
+    pca = PCA()
+    p = Pipeline([('pca', pca),('ss', ss), ('reg',reg)])
+    parameters = {'pca__n_components': [0.99,0.95,0.9,0.8,0.7], 'reg__alpha': [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000]}
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    clf.fit(x, y)
+    print "Ridge pca:"
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+
+    '''
     # ONLINE LEARNinG
     x_test = x[-100:]
     y_test = y[-100:]
@@ -67,16 +81,16 @@ if __name__ == "__main__":
         #pred = sp.maximum(min, pred)
         #pred = sp.minimum(max, pred)
         #print "base:",mean_squared_error(y_test, np.repeat(sum(y_test)/len(y_test), len(y_test)))
-
+    '''
     '''
     #quick plot
     #n, bins, patches = plt.hist(y, 50, normed=1, facecolor='green', alpha=0.75)
     #plt.show()
     '''
     #quick kmeans
-    km = KMeans(n_clusters=4)
-    km.fit(np.reshape(y, (len(y), 1)))
-    print km.cluster_centers_
+    #km = KMeans(n_clusters=4)
+    #km.fit(np.reshape(y, (len(y), 1)))
+    #print km.cluster_centers_
     #quick feature selection for outliers
     #y = km.labels_
 
@@ -95,10 +109,45 @@ if __name__ == "__main__":
     for f in range(x.shape[1]):
         print("%d. feature %d (%f) - %s" % (f + 1, indices[f], importances[indices[f]], h[indices[f]+1]))
 
-    clf = GridSearchCV(forest, {}, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
-    clf.fit(x, y)
+    f_idxs = []
+    for f in range(10):
+        f_idxs.append(importances[indices[f]])
+
+    x2 = x[:, f_idxs]
+    print x2.shape
+    pf = PolynomialFeatures()
+    p = Pipeline([('pf', pf),('ss', ss), ('reg',reg)])
+    parameters = {'pf__degree': [2,3], 'reg__alpha': [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000]}
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    clf.fit(x2, y)
+    print "Ridge poly:"
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_
+
+
+    reg = linear_model.Ridge()
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000])
+    p = Pipeline([('ss', ss), ('reg',reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    x2 = np.sqrt(x + (3/8))
+    clf.fit(x2, y)
+    print "Ridge normal sqrt:"
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+
+
+    reg = linear_model.Ridge()
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000])
+    p = Pipeline([('ss', ss), ('reg',reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    x2 = np.log(x + 1)
+    clf.fit(x2, y)
+    print "Ridge normal log:"
+    print clf.grid_scores_
+    print clf.best_params_, clf.best_score_
+
 
     data,h = utils.read_tsv(base+"out_medium_timestamp.tsv")
     data = utils.remove_outliers(data, 0)
@@ -115,7 +164,7 @@ if __name__ == "__main__":
 
     from sklearn.dummy import DummyRegressor
     dummy = DummyRegressor()
-    clf = GridSearchCV(dummy, {}, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf = GridSearchCV(dummy, {}, scoring=rmse_scorrer, n_jobs=1, verbose=0, cv=2)
     clf.fit(x.reshape(-1,1), y)
     print "BASE:", clf.best_score_
     '''
@@ -130,7 +179,7 @@ if __name__ == "__main__":
     reg = linear_model.Ridge()
     parameters = {'alpha': [0.001, 0.1, 1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70]}
 
-    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf = GridSearchCV(reg, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=0, cv=2)
     clf.fit(x, y)
     print clf.grid_scores_
     print clf.best_params_, clf.best_score_

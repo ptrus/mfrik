@@ -55,6 +55,20 @@ def merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
+def merge_tsvs(outpath, *paths):
+    with open(outpath, 'w') as fout:
+        first = True
+        for inpath in paths:
+            with open(inpath, 'r') as fin:
+                for line in fin:
+                    if line[0].isalpha():
+                        print "In header: ", line
+                        if first:
+                            fout.write(line)
+                    else:
+                        fout.write(line)
+                first = False
+
 def read_tsv(path, header=True):
     with open(path, 'r') as f:
         data = []
@@ -263,7 +277,6 @@ def remove_outliers(data, idx):
     data = data[mask]
     return data
 
-
 ONE_UNIQUE_VAL = ["EXTERNALCREATIVEID"]
 # All distinct values are in test set
 TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
@@ -300,6 +313,10 @@ if __name__ == '__main__':
     #           fn=lambda x: x.strip().split('\t')[0] + "\t" + x.strip().split('\t')[5] + "\n")
 
     #pass_file("/home/peterus/Downloads/ccdm_test.tsv", lambda x: print_time(x.strip().split('\t')[5]))
+
+    merge_tsvs("C:\\Users\\peteru\\Downloads\\cdm_all.tsv", "C:\\Users\\peteru\\Downloads\\\ccdm_medium.tsv\\\ccdm_medium.tsv",
+                                                             "C:\\Users\\peteru\\Downloads\\\ccdm_large.tsv\\\ccdm_large.tsv",
+                                                             "C:\\Users\\peteru\\Downloads\\ccdm_sample.tsv")
 
     '''
     for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
