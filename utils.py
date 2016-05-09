@@ -96,7 +96,12 @@ def read_tsv_online(path, maxmemusage=95):
                 print psutil.virtual_memory()
         yield np.array(buffer)
 
-def read_tsv_batch(path, first_line=True, batchsize=100):
+def read_tsvs_batch(paths, first_line=False, batchsize=100):
+    for path in paths:
+        for batch in read_tsv_batch(path, first_line, batchsize):
+            yield batch
+
+def read_tsv_batch(path, first_line=False, batchsize=100):
     with open(path) as f:
         batch = []
         cntr = 0

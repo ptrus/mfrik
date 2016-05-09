@@ -1,0 +1,47 @@
+SGDRegrssor normal data:
+mean: -3.31425, std: 0.02872, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 1}
+mean: -3.37629, std: 0.00515, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 1}
+mean: -3.46951, std: 0.02520, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 1}
+mean: -3.49214, std: 0.01555, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 10}
+mean: -3.49215, std: 0.01556, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 10}
+mean: -3.49242, std: 0.01528, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 100}
+mean: -3.49253, std: 0.01592, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 100}
+mean: -3.49263, std: 0.01582, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_loss', 'reg__alpha': 100}
+mean: -3.49268, std: 0.01590, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_loss', 'reg__alpha': 1}
+mean: -3.49293, std: 0.01610, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 10}
+
+Ridge pca:
+mean: -3.48828, std: 0.03048, params: {'pca__n_components': 0.9, 'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}
+mean: -3.48830, std: 0.03036, params: {'pca__n_components': 0.95, 'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}
+mean: -3.48836, std: 0.03056, params: {'pca__n_components': 0.95, 'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.1}
+mean: -3.48837, std: 0.03067, params: {'pca__n_components': 0.99, 'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.48837, std: 0.03065, params: {'pca__n_components': 0.8, 'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.1}
+mean: -3.48838, std: 0.03039, params: {'pca__n_components': 0.95, 'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+mean: -3.48845, std: 0.03036, params: {'pca__n_components': 0.9, 'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+mean: -3.48848, std: 0.03060, params: {'pca__n_components': 0.95, 'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}
+mean: -3.48850, std: 0.03033, params: {'pca__n_components': 0.8, 'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.1}
+mean: -3.48850, std: 0.03044, params: {'pca__n_components': 0.9, 'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.1}
+
+Sqrt:
+mean: -3.25155, std: 0.00473, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.001}
+mean: -3.25582, std: 0.00410, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.001}
+mean: -3.26314, std: 0.00717, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.26315, std: 0.01141, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.001}
+mean: -3.26319, std: 0.00971, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.26370, std: 0.01094, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+mean: -3.26759, std: 0.00142, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.27150, std: 0.00624, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+mean: -3.27294, std: 0.00978, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}
+mean: -3.27417, std: 0.01054, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+
+Log+1:
+mean: -3.25184, std: 0.01711, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.001}
+mean: -3.26014, std: 0.01608, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.26060, std: 0.01425, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_loss', 'reg__alpha': 0.001}
+mean: -3.26262, std: 0.01026, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha': 0.01}
+mean: -3.26947, std: 0.01219, params: {'reg__penalty': 'elasticnet', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}
+mean: -3.27375, std: 0.01162, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha':.01}
+mean: -3.27794, std: 0.04286, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha':.001}
+mean: -3.27938, std: 0.00907, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha':.01}
+mean: -3.27956, std: 0.00594, params: {'reg__penalty': 'l1', 'reg__loss': 'squared_epsilon_insensitive', 'reg__alpha':.001}
+mean: -3.28525, std: 0.00895, params: {'reg__penalty': 'l2', 'reg__loss': 'squared_loss', 'reg__alpha': 0.01}

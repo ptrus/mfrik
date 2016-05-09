@@ -1,5 +1,5 @@
 import utils
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,MaxAbsScaler
 from sklearn.decomposition import PCA
 from sklearn.feature_selection import VarianceThreshold
 from sklearn import linear_model
@@ -16,13 +16,17 @@ from sklearn_utils import rmse_scorrer
 from sklearn_utils import GetTargetAverages
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVR
+from operator import itemgetter
 
 if __name__ == "__main__":
     #base="D:\\mfrik\\"
     #base="/home/peterus/Projects/mfrik/"
     base="C:\\Users\\peteru\\mfrik\\"
     data,h = utils.read_tsv(base+"outALL.tsv")
-
+    print "Data before:", data.shape
+    data = utils.remove_outliers(data, 0)
+    print "Data after:", data.shape
     x,y = data[:,1:],data[:,0]
     x[x=='null'] = '0'
     x = x.astype(float)
@@ -40,29 +44,65 @@ if __name__ == "__main__":
 
     x,y = shuffle(x,y)
 
-    #pca = PCA(0.8)
-    #x2 = pca.fit_transform(x)
-    #print x2.shape
-
-    reg = linear_model.Ridge()
-    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000])
+    reg = linear_model.SGDRegressor()
+    '''
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+                      reg__penalty=['l2', 'l1', 'elasticnet'])
     p = Pipeline([('ss', ss), ('reg',reg)])
 
-    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=1, cv=2)
     clf.fit(x, y)
-    print "Ridge normal:"
-    print clf.grid_scores_
-    print clf.best_params_, clf.best_score_
+    print "SGDRegrssor normal data:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:10]:
+        print score
+    '''
 
+    '''
     pca = PCA()
     p = Pipeline([('pca', pca),('ss', ss), ('reg',reg)])
-    parameters = {'pca__n_components': [0.99,0.95,0.9,0.8,0.7], 'reg__alpha': [0.001, 0.01, 0.1, 1, 5, 10, 100, 1000]}
-    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=0, cv=5)
+    parameters = dict(pca__n_components= [0.99,0.95,0.9,0.8,0.7], reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+                      reg__penalty=['l2', 'l1', 'elasticnet'])
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=1, cv=2)
     clf.fit(x, y)
     print "Ridge pca:"
-    print clf.grid_scores_
-    print clf.best_params_, clf.best_score_
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:10]:
+        print score
+    '''
 
+    '''
+    reg = linear_model.SGDRegressor()
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+                      reg__penalty=['l2', 'l1', 'elasticnet'])
+    s = MaxAbsScaler()
+    p = Pipeline([('s', s), ('reg',reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=1, verbose=1, cv=2)
+    x2 = np.sqrt(np.abs(x+(3/8)))
+    print x2
+    clf.fit(x2, y)
+    print "Ridge normal:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:10]:
+        print score
+    '''
+
+    reg = linear_model.SGDRegressor()
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
+                      reg__penalty=['l2', 'l1', 'elasticnet'])
+    s = MaxAbsScaler()
+    p = Pipeline([('s', s), ('reg',reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=1, cv=2)
+    x2 = np.log(np.abs(x)+1)
+    clf.fit(x2, y)
+    print "Ridge normal:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:10]:
+        print score
+
+    END()
     '''
     # ONLINE LEARNinG
     x_test = x[-100:]

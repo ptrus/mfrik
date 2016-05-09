@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.externals import joblib
 
-def SGD_fit(train_path, n_iters, conv_test_x=[], conv_test_y=[], batchsize=1000, loss='squared_loss', penalty='l2', alpha=1, l1_ratio=0.15, postprocess=None):
+def SGD_fit(train_path, n_iters, batchsize=1000, loss='squared_loss', penalty='l2', alpha=1, l1_ratio=0.15, postprocess=None):
     sgd = SGDRegressor(loss=loss, penalty=penalty, alpha=alpha, l1_ratio=l1_ratio)
     old_score = None
     iters = 0
@@ -51,11 +51,11 @@ def SGD_fit(train_path, n_iters, conv_test_x=[], conv_test_y=[], batchsize=1000,
 if __name__ == '__main__':
     #base = "D:\\mfrik\\"
     #base="/home/peterus/Projects/mfrik/"
-    base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
+    #base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
+    base = "C:\\Users\\peteru\\mfrik\\data\\binarized\\"
 
-    '''
-    ss = StandardScaler_online_fit(base + 'final_train.tsv')
-    StandarScaler_online_transform(ss, base + 'final_test.tsv', base + 'final_test-scaled.tsv')
+    ss = StandardScaler_online_fit(base + 'ccdm_large_preprocessed.tsv')
+    StandarScaler_online_transform(ss, base + 'ccdm_large_preprocessed.tsv', base + 'ccdm_large_preprocessed-scaled.tsv')
     StandarScaler_online_transform(ss, base + 'final_train.tsv', base + 'final_train-scaled.tsv')
     joblib.dump(ss, base + 'ssonline.pkl')
     '''
@@ -73,3 +73,4 @@ if __name__ == '__main__':
         sgd = SGD_fit(base + "final_train-scaled.tsv", 10000, testX, testYT, 10000, alpha=alpha, postprocess=ss)
         #joblib.dump(sgd, base + 'sgd-fitted.pkl')
         #sgd = joblib.load(base + 'sgd-fitted.pkl')
+    '''

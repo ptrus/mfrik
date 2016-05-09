@@ -1,5 +1,5 @@
 import numpy as np
-from utils import rmse, read_tsv_online, read_tsv_batch
+from utils import rmse, read_tsv_online, read_tsv_batch, read_tsvs_batch
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin
 from collections import defaultdict
@@ -7,7 +7,7 @@ from sklearn.neighbors import LSHForest, NearestNeighbors
 from sklearn.externals import joblib
 from cross_validation import get_train_test_folds_paths
 import copy
-
+import sys
 
 def rmse_scorrer(estimator, X, y_true):
     y_pred = estimator.predict(X)
@@ -129,23 +129,98 @@ class GetTargetClosest(TransformerMixin):
         return self
 
 class OnlineLearner():
-    def __init__(self, learner, batchsize, name, *_):
+    def __init__(self, learner, batchsize, name, targetidx=0, n_iters=1, finditer=False, *_):
         self.batchsize = batchsize
         self.learner = learner
         self.name = name
+        self.targetidx = targetidx
+        self.n_iters = n_iters
+        self.finditer = finditer
 
-    def online_fit(self, inpath):
-        for batch in read_tsv_batch(inpath, batchsize=self.batchsize):
-            self.learner.partial_fit(batch)
+    def online_fit(self, inpaths):
+
+        if not self.finditer:
+            for i in range(self.n_iters):
+                for batch in read_tsvs_batch(inpaths, batchsize=self.batchsize):
+                    if len(batch) == 0: continue
+                    x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                    y = batch[:, self.targetidx].astype(float)
+                    self.learner.partial_fit(x, y)
+        else:
+            n_iters = 0
+            print "Searching nr. of iterations"
+            for i in range(10000):
+                print "At iter: %d" % (i)
+                first = True
+                for batch in read_tsvs_batch(inpaths, batchsize=self.batchsize):
+                    if first:
+                        ''' First batch will be used for testing convergence '''
+                        test_x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                        test_y = batch[:, self.targetidx].astype(float)
+                        first = False
+                        continue
+
+                    if len(batch) == 0: continue
+                    y = batch[:, self.targetidx].astype(float)
+                    x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                    self.learner.partial_fit(x, y)
+
+                pred = self.learner.predict(test_x)
+                print pred
+                score = -rmse(test_y, pred)
+                avg2 = np.average(test_y)
+                score2 = -rmse(test_y, avg2)
+                print "Score: %.2f" % (score)
+                print "Score avg: %.2f" % (avg2)
+
+                if i == 0:
+                    old_score = score
+                    continue
+                ''' Stop if worse RMSE score '''
+                if score <= old_score: old_score = score
+                else:
+                    n_iters = i
+                    break
+
+            print "Stopped after iters: %d" % (n_iters)
+            self.n_iters = n_iters
+            ''' Final fit on all '''
+            print "Fitting..."
+            for i in range(n_iters):
+                print "At iter %d/%d" % (i, n_iters)
+                for batch in read_tsvs_batch(inpaths, batchsize=self.batchsize):
+                    if len(batch) == 0: continue
+                    x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                    y = batch[:, self.targetidx].astype(float)
+                    self.learner.partial_fit(x, y)
         return self
 
-    def online_transform(self, inpath, outpath):
+    def online_transform(self, inpath, outpath, transform_target = False):
         with open(outpath, 'a') as fout:
             for batch in read_tsv_batch(inpath, batchsize=self.batchsize):
-                x_new = self.learner.transform(batch)
+                if len(batch) == 0: continue
+                if transform_target:
+                    x_new = self.learner.transform(batch).astype(float)
+                else:
+                    x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                    y = batch[:, self.targetidx]
+                    y[y == 'null'] = 0
+                    x_new = self.learner.transform(x)
+                    x_new = np.insert(x_new, self.targetidx, y, axis=1)
                 for row in x_new:
                     row = [str(x) for x in row]
                     fout.write('\t'.join(row) + '\n')
+
+    def online_predict(self, inpath, outpath):
+        with open(outpath, 'a') as fout:
+            for batch in read_tsv_batch(inpath, batchsize=self.batchsize, first_line=True):
+                if len(batch) == 0: continue
+                x = np.delete(batch, self.targetidx, axis=1).astype(float)
+                x_new = self.learner.predict(x)
+                for row in x_new:
+                    row = "{0:.3f}".format(row)#print("%.2f" % a)
+
+                    fout.write(row + '\n')
 
     def save(self, path):
         joblib.dump(self, path)

@@ -9,15 +9,21 @@ if __name__ == '__main__':
     prepreocessed = ''
     out_prepreocessed='__standardscale'
     n_folds = 5
-    print StandardScaler()
-    print StandardScaler().partial_fit
     onlinescaler = OnlineLearner(StandardScaler(), 10000, 'standardscaler')
+    i=0
+
     for train in get_full_train_paths(base_path=base_path, uuid=uuid, prepreocessed='', n_folds=n_folds):
+        i += 1
+        print "Fold %d" % (i)
         temp_learner = onlinescaler.duplicate()
-        temp_learner.online_fit(train)
-        temp_learner.online_transform(train, train+out_prepreocessed)
+        print "Fitting ..."
+        temp_learner.online_fit([train])
+        print "Transforming..."
+        print "From: ", train
+        print "To: ", (str(train)+out_prepreocessed)
+        temp_learner.online_transform(train, str(train)+out_prepreocessed)
 
-    for train in get_full_train_paths():
-        onlinescaler.online_fit(train)
+    for train in get_full_train_paths(base_path=base_path, uuid=uuid, prepreocessed='', n_folds=n_folds):
+        onlinescaler.online_fit([train])
 
-    onlinescaler.save(os.join(base_path, uuid+'__standardscaler_fitted_all'))
+    onlinescaler.save(os.path.join(base_path, uuid+'__standardscaler_fitted_all'))

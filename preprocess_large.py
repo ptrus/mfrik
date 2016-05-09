@@ -205,17 +205,25 @@ if __name__ == '__main__':
     # base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
     base = "C:\\Users\\peteru\\Downloads\\"
 
+    #file = cdm_all.tsv"
+    file = "ccdm_test.tsv"
+    test_split = True
 
-    base_base = base + "cdm_all.tsv"
-    shuffled_path = base + "ccdm_large-shuffled.tsv"
-    without_outliers = base + "ccdm_large-shuffled-without-outliers.tsv"
-    preprocessed = base+"ccdm_large_preprocessed.tsv"
+    base_base = base + file
+    without_outliers = base + file + "-without-outliers.tsv"
+    shuffled_path = base + file + "-without-outliers-shuffled.tsv"
+    preprocessed = base+ file + "-preprocessed.tsv"
 
-    new_len = remove_outliers(base_base, without_outliers, 0)
-    shuffle_file(without_outliers, shuffled_path, new_len)
-    # PARSE TIMESTAMPS, discretasize, parse jsons, select fields
+    # Test split is only preprocessed
+    if test_split:
+        preprocess(base_base, preprocessed)
 
-    preprocess(shuffled_path, preprocessed)
+    else:
+        new_len = remove_outliers(base_base, without_outliers, 0)
+        shuffle_file(without_outliers, shuffled_path, new_len)
+        # PARSE TIMESTAMPS, discretasize, parse jsons, select fields
 
-    # Create folds
-    create_folds(preprocessed, base, 5, new_len)
+        preprocess(shuffled_path, preprocessed)
+
+        # Create folds
+        create_folds(preprocessed, base, 5, new_len)

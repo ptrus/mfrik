@@ -14,25 +14,28 @@ def get_full_train_paths(base_path, uuid, prepreocessed='', n_folds = 5):
     for _, test in get_train_test_folds_paths(base_path, uuid, prepreocessed, n_folds):
         yield test
 
-def cv_predict(online_learner, basepath, uuid, n_folds=5, prepreocessed='', verbose = False):
+def cv_predict(online_learner, basepath, uuid, test_path='', n_folds=5, prepreocessed='', verbose = False):
     outdir = os.path.join(basepath, uuid + '-' + online_learner.name + '/')
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
     print "Starting CV predictions:"
     i = 0
-    for trainpath, testpath in get_train_test_folds_paths(basepath, uuid, prepreocessed, n_folds = n_folds):
+    for trainpaths, testpath in get_train_test_folds_paths(basepath, uuid, prepreocessed, n_folds = n_folds):
         i+=1
         if verbose: print "CV: %d / %d" % (i, n_folds)
         new_learner = online_learner.duplicate()
         if verbose: print "Fitting..."
-        new_learner.online_fit(trainpath)
-        if verbose: print "Transforming..."
-        new_learner.online_transform(testpath, os.path.join(outdir, 'predict.tsv'))
+        new_learner.online_fit(trainpaths)
+        if verbose: print "Predicting..."
+        new_learner.online_predict(testpath, os.path.join(outdir, 'predict-folds.tsv'))
 
     # Final fit
-    for _, testpath in get_full_train_paths(basepath, uuid, prepreocessed, n_folds= 5):
-        online_learner.online_fit(testpath)
+    for testpath in get_full_train_paths(basepath, uuid, prepreocessed, n_folds= 5):
+        online_learner.online_fit([testpath])
+
+    if test_path != '':
+        online_learner.online_predict(test_path, os.path.join(outdir, 'predict-final.tsv'))
 
     online_learner.save(os.path.join(outdir, 'learner'))
 
