@@ -95,7 +95,7 @@ if __name__ == '__main__':
                 files[key].write(str(i) + '\t')
                 files[key].write(text)
     '''
-
+    '''
     avg = 3.92983617223
     print 'Predicting'
     predictions = {}
@@ -122,7 +122,6 @@ if __name__ == '__main__':
         del vt
 
     file = open(base+'predictions_dict', 'wb')
-    pickle.dump(predictions, file)
     print "Predicing rest"
     with open(base + 'REST_test.tsv', 'r') as fin:
         ids = []
@@ -132,14 +131,19 @@ if __name__ == '__main__':
 
         for i in ids:
             predictions[i] = "{0:.3f}".format(avg)
+    pickle.dump(predictions, file)
+    '''
+    f = open(base + 'predictions_dict')
+    predictions = pickle.load(f)
 
-
-    predictions = joblib.load(base+'predictions_dict')
     print len(predictions)
     print "writing to file"
     with open(base + 'day_to_day_predictions.tsv', 'w') as fout:
-        for i in range(len(predictions)):
-            fout.write(predictions[i] + '\n')
+        for i in range(2341137):
+            if i in predictions:
+                fout.write(predictions[i] + '\n')
+            else:
+                fout.write(str(3.929) + '\n')
 '''
 Counter({'4': 2340166, '3': 389, '1': 245, '5': 124, '2': 66, '6': 38, '7': 23, '8': 20, '12': 19, '9': 19, '10': 18, '11': 10})
 '''
