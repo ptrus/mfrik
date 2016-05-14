@@ -105,3 +105,23 @@ CREATIVEID = ["830feb0c0a32499289a19e892553f869","c2e25c5650d29f7345e57845d461d4
 SDK = ["61da31058d7ba95aff7cbdf35af35574","6650fadcc0264109f8bd976558377652","MobileWeb","69ad891f01a160066f0d0f7687af4363","d504dbf593db89ca96694c541e213380"]
 
 
+GEOIP_COUNTRY_vals = {"United States" : 2016409, "United Kingdom" : 207837, "Canada" : 71586, "Netherlands" : 36392, "France" : 32764, "South Africa" : 23366, "Sweden" : 21641, "Spain" : 12946, "Slovenia" : 10346, "Australia" : 8713,
+"Denmark" : 8414, "Germany" : 8002, "Italy" : 7176, "Singapore" : 5707, "Finland" : 2512, "Brazil" : 2179, "Argentina" : 1774, "Mexico" : 1768, "Europe" : 1487, "New Zealand" : 1438,
+"Qatar" : 1277, "Peru" : 1256, "Israel" : 1128, "Egypt" : 1023, "Belgium" : 902, "Ukraine" : 862, "Venezuela" : 853, "Kuwait" : 745, "Switzerland" : 684, "Russian Federation" : 659,
+"Asia/Pacific Region" : 645, "India" : 607, "Norway" : 405, "Yemen" : 401, "Chile" : 273, "Turkey" : 264, "Colombia" : 235, "Puerto Rico" : 213, "Bulgaria" : 207, "Ireland" : 203,
+"Jersey" : 169, "Thailand" : 155, "Saudi Arabia" : 143, "United Arab Emirates" : 137, "Morocco" : 133, "Isle of Man" : 129, "Japan" : 124, "China" : 120, "Indonesia" : 112, "Hong Kong" : 109,
+"Kazakhstan" : 108, "Philippines" : 104, "Algeria" : 102, "Korea, Republic of" : 100, "Pakistan" : 99, "Vietnam" : 92, "Austria" : 89, "Bangladesh" : 86, "Mauritius" : 85, "Guernsey" : 83,
+"Ecuador" : 79, "Dominican Republic" : 72, "Poland" : 70, "Croatia" : 65, "Reunion" : 65, "Malaysia" : 64, "Iran, Islamic Republic of" : 62, "Iraq" : 62, "Luxembourg" : 60, "Lebanon" : 59,
+"Costa Rica" : 56, "Guam" : 55, "Czech Republic" : 54, "Guatemala" : 53, "Bolivia" : 49, "Faroe Islands" : 48, "Greenland" : 46, "Honduras" : 45, "Hungary" : 44, "Taiwan" : 42,
+"Tunisia" : 39, "Jamaica" : 34, "Romania" : 33, "Jordan" : 33, "Senegal" : 31, "Serbia" : 31, "Greece" : 31, "Bosnia and Herzegovina" : 30, "Macau" : 30, "Panama" : 29,
+"Nigeria" : 27, "Cameroon" : 26, "Albania" : 26, "Kenya" : 25, "El Salvador" : 23, "Portugal" : 22, "Guinea" : 21, "Anonymous Proxy" : 21, "Cayman Islands" : 21, "Mali" : 20,
+"Cote D'Ivoire" : 20, "Uruguay" : 19, "Virgin Islands, U.S." : 18, "Trinidad and Tobago" : 18, "Bahrain" : 17, "Belarus" : 17, "Azerbaijan" : 16, "Congo, The Democratic Republic of the" : 16, "Guadeloupe" : 16, "Lithuania" : 15,
+"French Guiana" : 15, "Bahamas" : 15, "Macedonia" : 15, "Cambodia" : 14, "Oman" : 14, "Ghana" : 14, "Georgia" : 14, "Estonia" : 14, "Myanmar" : 13, "Syrian Arab Republic" : 12,
+"Nicaragua" : 12, "Martinique" : 12, "Burkina Faso" : 11, "Palestinian Territory" : 11, "Satellite Provider" : 11, "Moldova, Republic of" : 11, "Sri Lanka" : 10, "Haiti" : 10, "Tanzania, United Republic of" : 9, "Nepal" : 9,
+"Iceland" : 9, "Latvia" : 9, "Paraguay" : 9, "American Samoa" : 8, "Monaco" : 8, "Uganda" : 8, "Uzbekistan" : 8, "Antigua and Barbuda" : 8, "Maldives" : 7, "Madagascar" : 7,
+"French Polynesia" : 7, "Slovakia" : 7, "Libya" : 7, "Guyana" : 7, "Niger" : 7, "Lao People's Democratic Republic" : 7, "Mongolia" : 7, "Bermuda" : 7, "Malta" : 7, "Gabon" : 7,
+"Montenegro" : 6, "Aruba" : 6, "Belize" : 6, "Saint Lucia" : 6, "Cyprus" : 6, "Angola" : 6, "Curacao" : 6, "Congo" : 6, "Ethiopia" : 5, "Sierra Leone" : 5,
+"null" : 5, "Virgin Islands, British" : 4, "Somalia" : 4, "Malawi" : 4, "Togo" : 4, "Brunei Darussalam" : 4, "Northern Mariana Islands" : 3, "Afghanistan" : 3, "Fiji" : 3, "Rwanda" : 3,
+"Seychelles" : 3, "Benin" : 3, "Mozambique" : 3, "Gibraltar" : 3, "Barbados" : 3, "Zambia" : 3, "Zimbabwe" : 3, "Namibia" : 2, "Tajikistan" : 2, "Dominica" : 2,
+"Sudan" : 2, "Papua New Guinea" : 2, "Mauritania" : 2, "Mayotte" : 2, "New Caledonia" : 2, "Sint Maarten (Dutch part)" : 2, "Saint Pierre and Miquelon" : 1, "Samoa" : 1, "Andorra" : 1, "Vanuatu" : 1,
+"Cook Islands" : 1, "Micronesia, Federated States of" : 1, "Tonga" : 1, "Bonaire, Saint Eustatius and Saba" : 1, "Cape Verde" : 1, "Marshall Islands" : 1, "Turks and Caicos Islands" : 1, "Suriname" : 1, "Anguilla" : 1, "Kyrgyzstan" : 1,  "Cuba" : 1}

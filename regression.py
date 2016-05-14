@@ -20,9 +20,9 @@ from sklearn.svm import LinearSVR
 from operator import itemgetter
 
 if __name__ == "__main__":
-    #base="D:\\mfrik\\"
+    base="D:\\mfrik\\"
     #base="/home/peterus/Projects/mfrik/"
-    base="C:\\Users\\peteru\\mfrik\\"
+    #base="C:\\Users\\peteru\\mfrik\\"
     data,h = utils.read_tsv(base+"outALL.tsv")
     print "Data before:", data.shape
     data = utils.remove_outliers(data, 0)
@@ -89,15 +89,30 @@ if __name__ == "__main__":
     '''
 
     reg = linear_model.SGDRegressor()
-    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss', 'huber', 'epsilon_insensitive', 'squared_epsilon_insensitive'],
-                      reg__penalty=['l2', 'l1', 'elasticnet'])
+    parameters = dict(reg__alpha= [0.001, 0.01, 0.1, 1, 10, 100], reg__loss=['squared_loss'],
+                      reg__penalty=['l2'])
     s = MaxAbsScaler()
-    p = Pipeline([('s', s), ('reg',reg)])
+    p = Pipeline([('ss', ss), ('reg',reg)])
 
     clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=1, cv=2)
-    x2 = np.log(np.abs(x)+1)
+    x2 = np.sqrt(np.abs(x) + (3/8))
     clf.fit(x2, y)
-    print "Ridge normal:"
+    print "Ridge log, standardscaler:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:10]:
+        print score
+
+    reg = linear_model.SGDRegressor()
+    parameters = dict(reg__alpha=[0.001, 0.01, 0.1, 1, 10, 100],
+                      reg__loss=['squared_loss'],
+                      reg__penalty=['l2'])
+    s = MaxAbsScaler()
+    p = Pipeline([('s', s), ('reg', reg)])
+
+    clf = GridSearchCV(p, parameters, scoring=rmse_scorrer, n_jobs=-1, verbose=1, cv=2)
+    x2 = np.sqrt(np.abs(x) + (3 / 8))
+    clf.fit(x2, y)
+    print "Ridge log, maxabsscaler:"
     scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
     for score in scores[:10]:
         print score

@@ -119,8 +119,27 @@ def geo(line, header_old):
             val = '0'
         new_line.append(val)
 
-    assert len(utils.GEO) == len(new_line)
+    idx = header_old.index('GEOIP_COUNTRY')
+    val = line[idx]
+    cntries = geoip_countries()
+    line = np.zeros(len(cntries))
+
+    if val in cntries:
+        new_idx = cntries.index(val)
+        line[new_idx] = 1
+    else:
+        line[-1] = 1
+
+    new_line = new_line + line.tolist()
+
+    assert len(utils.GEO) + len(cntries) == len(new_line)
     return new_line
+
+def geoip_countries(atlest=100):
+    return [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atlest] + ['OTHER']
+
+def geoip_heades(geoip_countries):
+    return ['GEOIP_COUNTRY_' + x for x in geoip_countries]
 
 def json_headers():
     return ['FILESJSON_size', 'FILESJSON_len', 'ERRORJSON_len']
@@ -139,7 +158,7 @@ def split_train_test(in_path, out_path, test_size=50000):
 
 def preprocess(inpath, outpath):
     # ORDER IS IMOPRTANT
-    header_new = [utils.TARGET] + discreete_headers() +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO
+    header_new = [utils.TARGET] + discreete_headers() +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries())
     header_old = []
     first = True
     with open(outpath, 'w') as out:
@@ -203,16 +222,16 @@ def create_folds(in_path, out_path, n_folds, n_lines):
 if __name__ == '__main__':
     # base = "/home/peterus/Downloads/"
     # base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
-    base = "C:\\Users\\peteru\\Downloads\\"
+    base = "D:\\mfrik_data\\"
 
-    #file = cdm_all.tsv"
-    file = "ccdm_test.tsv"
-    test_split = True
+    file = "cdm_all.tsv"
+    #file = "ccdm_test.tsv"
+    test_split = False
 
     base_base = base + file
-    without_outliers = base + file + "-without-outliers.tsv"
-    shuffled_path = base + file + "-without-outliers-shuffled.tsv"
-    preprocessed = base+ file + "-preprocessed.tsv"
+    without_outliers = base + file + "-without-outliers100.tsv"
+    shuffled_path = base + file + "-without-outliers-shuffled100.tsv"
+    preprocessed = base+ file + "-preprocessed-with_cntries100.tsv"
 
     # Test split is only preprocessed
     if test_split:

@@ -303,6 +303,14 @@ ALL_CATEGORIES = ["ACCOUNTID", "CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "CREAT
                   "UA_VENDOR", "UA_MODEL", "UA_OS", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
                   "UA_BROWSERRENDERINGENGINE"
                   ]
+
+NOT_USED_YET = ["CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "PLATFORMVERSION", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
+                "EXTERNALSUPPLIERID", "GEOIP_TIMEZONE", "GEOIP_COUNTRY", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
+                  "GEOIP_METROCODE", "GEOIP_DMACODE", "UA_HARDWARETYPE", "UA_PLATFORM", "UA_PLATFORMVERSION",
+                "UA_VENDOR", "UA_MODEL", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
+                  "UA_BROWSERRENDERINGENGINE"]
+
+
 BINARY = ["UA_MOBILEDEVICE"]
 ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH"]
 JSON = ["FILESJSON", "ERRORSJSON"]
@@ -319,10 +327,10 @@ if __name__ == '__main__':
 
     #pass_file("/home/peterus/Downloads/ccdm_test.tsv", lambda x: print_time(x.strip().split('\t')[5]))
 
-    merge_tsvs("C:\\Users\\peteru\\Downloads\\cdm_all.tsv", "C:\\Users\\peteru\\Downloads\\\ccdm_medium.tsv\\\ccdm_medium.tsv",
-                                                             "C:\\Users\\peteru\\Downloads\\\ccdm_large.tsv\\\ccdm_large.tsv",
-                                                             "C:\\Users\\peteru\\Downloads\\ccdm_sample.tsv")
-
+    merge_tsvs("D:\\mfrik_data\\cdm_all.tsv", "D:\\mfrik_data\\ccdm_medium.tsv",
+                                                             "D:\\mfrik_data\\ccdm_large.tsv",
+                                                             "D:\\mfrik_data\\ccdm_sample.tsv")
+    done()
     '''
     for chunk in read_tsv_online("C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\ccdm_large.tsv"):
         print len(chunk)
