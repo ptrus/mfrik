@@ -33,13 +33,14 @@ if __name__ == '__main__':
 
     with open('./not_used_stats.txt', 'w') as f:
         for g in fields:
-            f.write(g + '\n')
-            f.write(str(len(counters[g])) + '\n')
+            f.write(g + '=\\\n')
             i = 0
+            f.write('{')
             for key, val in sorted(counters[g].items(), key=itemgetter(1), reverse=True):
                 i +=1
                 f.write('"' + str(key) + '" : ' + str(val) + ', ')
                 if i % 10 == 0:
                     f.write('\n')
+            f.write('}')
             f.write('\n\n\n')
     #print timestamps

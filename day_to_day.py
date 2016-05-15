@@ -21,7 +21,7 @@ if __name__ == '__main__':
     base_base = base + file
     without_outliers = base + file + "-without-outliers.tsv"
     shuffled_path = base + file + "-without-outliers-shuffled.tsv"
-    preprocessed = base+ file + "-preprocessed-with_cntries.tsv"
+    preprocessed = base+ file + "-preprocessed.tsv"
 
     out = []
     with open(preprocessed, 'r') as f:
@@ -50,6 +50,16 @@ if __name__ == '__main__':
     base = rmse(y, [base]*len(y))
     print "Baseline score: ", base
 
+    et = ExtraTreesRegressor(n_jobs=-1)
+    params = dict(n_estimators = [500])
+    clf = GridSearchCV(et, params, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x, y)
+    print "ExtraTreesRegressor:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores[:3]:
+        print score
+
+
     forest = ExtraTreesRegressor(n_estimators=300,
                                  n_jobs=-1)
 
@@ -61,16 +71,6 @@ if __name__ == '__main__':
     print("Feature ranking:")
     for f in range(x.shape[1]):
         print("%d. feature %d (%f) - %s" % (f + 1, indices[f], importances[indices[f]], header[indices[f] + 1]))
-
-
-    et = ExtraTreesRegressor(n_jobs=-1)
-    params = dict(n_estimators = [500,1000,1500])
-    clf = GridSearchCV(et, params, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
-    clf.fit(x, y)
-    print "ExtraTreesRegressor:"
-    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
-    for score in scores[:3]:
-        print score
 
     end()
 

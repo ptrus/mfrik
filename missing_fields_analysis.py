@@ -2,8 +2,6 @@
 # Go through features, observe missing fields
 # Go through samples, observe missing fields
 
-# TODO
-# TEST TIMESTAMPS on linux - weird
 
 # TEST
 '''

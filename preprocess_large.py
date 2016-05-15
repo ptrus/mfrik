@@ -4,6 +4,7 @@ import numpy as np
 import json
 from datetime import datetime
 from sklearn_utils import OnlineLearner
+import not_used_stats
 
 # TODO: fix shuffle
 def get_percentile(path, idx=0, percentile=96):
@@ -135,7 +136,32 @@ def geo(line, header_old):
     assert len(utils.GEO) + len(cntries) == len(new_line)
     return new_line
 
-def geoip_countries(atlest=100):
+def not_uesd_fields(line, header_old):
+    fields = utils.NOT_USED_YET
+    new_line = []
+    for f in fields:
+        idx = header_old.index(f)
+        val = line[idx]
+        field_values = get_field_values(f)
+        zeros = np.zeros(len(field_values))
+        if val in field_values:
+            new_idx = field_values.index(val)
+            zeros[new_idx] = 1
+        else:
+            zeros[-1] = 1
+        new_line = new_line + zeros.tolist()
+    return new_line
+
+def not_used_headers(fields):
+    new_header = []
+    for field in fields:
+        new_header = new_header + [field + '_' + val for val in get_field_values(field)]
+    return new_header
+
+def get_field_values(field, atleast=10000):
+    return [key for key,c in getattr(not_used_stats, field).items() if c >= atleast] + ['OTHER']
+
+def geoip_countries(atlest=10000):
     return [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atlest] + ['OTHER']
 
 def geoip_heades(geoip_countries):
@@ -158,7 +184,8 @@ def split_train_test(in_path, out_path, test_size=50000):
 
 def preprocess(inpath, outpath):
     # ORDER IS IMOPRTANT
-    header_new = [utils.TARGET] + discreete_headers() +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries())
+    header_new = [utils.TARGET] + discreete_headers() +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries()) + not_used_headers(utils.NOT_USED_YET)
+    print header_new
     header_old = []
     first = True
     with open(outpath, 'w') as out:
@@ -187,6 +214,9 @@ def preprocess(inpath, outpath):
                 new_line += timestamps(line, header_old)
                 # Geo
                 new_line += geo(line, header_old)
+                # Not used fields
+                new_line += not_uesd_fields(line, header_old)
+
                 assert len(new_line) == len(header_new)
                 out.write('\t'.join([str(x) for x in new_line]) + '\n')
 
@@ -226,12 +256,12 @@ if __name__ == '__main__':
 
     file = "cdm_all.tsv"
     #file = "ccdm_test.tsv"
-    test_split = False
 
+    test_split = False
     base_base = base + file
-    without_outliers = base + file + "-without-outliers100.tsv"
-    shuffled_path = base + file + "-without-outliers-shuffled100.tsv"
-    preprocessed = base+ file + "-preprocessed-with_cntries100.tsv"
+    without_outliers = base + file + "-without-outliersALL.tsv"
+    shuffled_path = base + file + "-without-outliers-shuffledALL.tsv"
+    preprocessed = base+ file + "-preprocessed-with_cntriesALL.tsv"
 
     # Test split is only preprocessed
     if test_split:
