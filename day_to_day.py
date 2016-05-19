@@ -11,6 +11,8 @@ from sklearn.pipeline import Pipeline
 from operator import itemgetter
 from utils import rmse
 from sklearn.feature_selection import VarianceThreshold
+import xgboost as xgb
+from sklearn.externals import joblib
 
 if __name__ == '__main__':
     # base = "/home/peterus/Downloads/"
@@ -36,10 +38,61 @@ if __name__ == '__main__':
     out = np.array(out)
     out[out == 'null'] = '0'
     x,y = out[:,1:].astype(float), out[:,0].astype(float)
+    x = x[:-200]
+    y = y[:-200]
+    print x,
+    x_valid = x[-200:]
+    y_valid = y[-200:]
+
+    param = {'bst:max_depth': 12,
+             'bst:eta': 0.01,
+             'subsample': 0.8,
+             'colsample_bytree': 0.7,
+             'silent': 0,
+             'objective': 'reg:linear',
+             'nthread': 7
+             }
+
+    dtrain = xgb.DMatrix(x, y)
+    dtest = xgb.DMatrix(x_valid, y_valid)
+    num_round = 20000
+    evallist = [(dtrain, 'train'), (dtest, 'test')]
+    plst = param.items()
+
+    bst = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=250, early_stopping_rounds=250)
+    xgb.importance(header[1:], model = bst)
+
+    END()
+
     vt = VarianceThreshold()
     base = sum(y) / len(y)
     base = rmse(y, [base]*len(y))
     print "Baseline score: ", base
+    print x.shape
+    gbm = xgb.XGBRegressor(n_estimators=1000)
+    gbm.fit(x,y, verbose=True) #eval_set=[(x_valid, 'train'), (y_valid,'test')], early_stopping_rounds=10,
+    joblib.dump(gbm, './dump1000')
+    print gbm.feature_importances_
+
+    importances = gbm.feature_importances_
+    indices = np.argsort(importances)[::-1]
+
+    # Print the feature ranking
+    print("Feature ranking:")
+    for f in range(x.shape[1]):
+        print("%d. feature %d (%f) - %s" % (f + 1, indices[f], importances[indices[f]], header[indices[f] + 1]))
+
+    end()
+    '''
+    gbm = xgb.XGBRegressor()
+    params = dict(n_estimators=[10,20,50,100,200,500,1000])
+    clf = GridSearchCV(gbm, params, scoring=rmse_scorrer, n_jobs=1, verbose=10, cv=2)
+    clf.fit(x, y)
+    print "XGBoost:"
+    scores = sorted(clf.grid_scores_, key=itemgetter(1), reverse=True)
+    for score in scores:
+        print score
+    '''
 
     forest = ExtraTreesRegressor(n_estimators=300,
                                  n_jobs=-1)

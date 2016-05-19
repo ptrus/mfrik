@@ -40,8 +40,7 @@ def remove_outliers(inpath, outpath, idx=0):
     print "Lines remaining: %d" % (n_lines)
     return n_lines
 
-def discreete_headers():
-    return ['UA_DEVICETYPE_' + x for x in m.UA_DEVICETYPE] + ['DEVICEORIENTATION_' + x for x in m.DEVICEORIENTATION] +\
+discrete_headers = ['UA_DEVICETYPE_' + x for x in m.UA_DEVICETYPE] + ['DEVICEORIENTATION_' + x for x in m.DEVICEORIENTATION] +\
         ['UA_BROWSERRENDERINGENGINE_' + x for x in m.UA_BROWSERRENDERINGENGINE] + ['ACTUALDEVICETYPE_' + x for x in m.ACTUALDEVICETYPE] +\
         ['PLATFORM_' + x for x in m.PLATFORM] + ['INTENDEDDEVICETYPE_' + x for x in m.INTENDEDDEVICETYPE] + ['CDNNAME_' + x for x in m.CDNNAME] +\
         ['EXTERNALADSERVER_' + x for x in m.EXTERNALADSERVER] + ['NETWORKTYPE_' + x for x in m.NETWORKTYPE] +\
@@ -49,14 +48,14 @@ def discreete_headers():
         ['SDK_' + x for x in m.SDK]
 
 def discretasize_line(line, header_old):
-    new_line = np.zeros(len(discreete_headers()))
+    new_line = np.zeros(len(discrete_headers))
     for T in utils.TEST_SET_ALL:
         idx = header_old.index(T)
         val = line[idx]
-        new_idx = discreete_headers().index(T + '_' + val)
+        new_idx = discrete_headers.index(T + '_' + val)
         new_line[new_idx] = 1
 
-    assert len(discreete_headers()) == len(new_line)
+    assert len(discrete_headers) == len(new_line)
     return new_line.tolist()
 
 def binaries(line, header_old):
@@ -122,7 +121,7 @@ def geo(line, header_old):
 
     idx = header_old.index('GEOIP_COUNTRY')
     val = line[idx]
-    cntries = geoip_countries()
+    cntries = geoip_countries
     line = np.zeros(len(cntries))
 
     if val in cntries:
@@ -142,7 +141,7 @@ def not_uesd_fields(line, header_old):
     for f in fields:
         idx = header_old.index(f)
         val = line[idx]
-        field_values = get_field_values(f)
+        field_values = field_values_dict[f]
         zeros = np.zeros(len(field_values))
         if val in field_values:
             new_idx = field_values.index(val)
@@ -155,14 +154,19 @@ def not_uesd_fields(line, header_old):
 def not_used_headers(fields):
     new_header = []
     for field in fields:
-        new_header = new_header + [field + '_' + val for val in get_field_values(field)]
+        new_header = new_header + [field + '_' + val for val in field_values_dict[field]]
     return new_header
 
+atlest=10000
 def get_field_values(field, atleast=10000):
     return [key for key,c in getattr(not_used_stats, field).items() if c >= atleast] + ['OTHER']
 
-def geoip_countries(atlest=10000):
-    return [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atlest] + ['OTHER']
+field_values_dict = {}
+for f in utils.NOT_USED_YET:
+    field_values_dict[f] = get_field_values(f)
+
+
+geoip_countries = [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atlest] + ['OTHER']
 
 def geoip_heades(geoip_countries):
     return ['GEOIP_COUNTRY_' + x for x in geoip_countries]
@@ -184,7 +188,7 @@ def split_train_test(in_path, out_path, test_size=50000):
 
 def preprocess(inpath, outpath):
     # ORDER IS IMOPRTANT
-    header_new = [utils.TARGET] + discreete_headers() +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries()) + not_used_headers(utils.NOT_USED_YET)
+    header_new = [utils.TARGET] + discrete_headers +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries) + not_used_headers(utils.NOT_USED_YET)
     print header_new
     header_old = []
     first = True
@@ -254,10 +258,10 @@ if __name__ == '__main__':
     # base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
     base = "D:\\mfrik_data\\"
 
-    file = "cdm_all.tsv"
-    #file = "ccdm_test.tsv"
+    #file = "cdm_all.tsv"
+    file = "ccdm_test.tsv"
 
-    test_split = False
+    test_split = True
     base_base = base + file
     without_outliers = base + file + "-without-outliersALL.tsv"
     shuffled_path = base + file + "-without-outliers-shuffledALL.tsv"

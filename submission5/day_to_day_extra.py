@@ -6,8 +6,6 @@ import numpy as np
 from sklearn.externals import joblib
 from utils import read_tsv_batch
 import pickle
-import xgboost as xgb
-
 if __name__ == '__main__':
     # base = "/home/peterus/Downloads/"
     # base = "C:\\Users\\Peter\\Downloads\\ccdm_large.tsv\\"
@@ -41,7 +39,7 @@ if __name__ == '__main__':
     print "Average:", avg
 
     #models = {}
-    '''
+
     used_attrs = ["UA_MODEL_iPhone", "SDK_MobileWeb", "timestamp_second", "timestamp_minute", "GEOIP_LAT", "TOPMOSTREACHABLEWINDOWHEIGHT",
                   "GEOIP_LNG", "timestamp_alteranivestamp", "TIMESTAMP", "timestamp_hour", "TOPMOSTREACHABLEWINDOWWIDTH", "CDNNAME_c",
                   "CDNNAME_b", "HOSTWINDOWHEIGHT", "CDNNAME_a", "EXTERNALSITEID_79a633437974c47dfbe937dbdb28a6b0", "HOSTWINDOWWIDTH",
@@ -60,7 +58,6 @@ if __name__ == '__main__':
                   "ACCOUNTID_47e9af3f9bd919e131062f46f44fba4e", "UA_OSVERSION_6.0.1", "PLATFORMVERSION_6.0.1", "GEOIP_REGION_Wisconsin", "GEOIP_REGION_Georgia", "UA_OSVERSION_5.1.1", "PLATFORMVERSION_5.1.1",
                   "UA_PLATFORMVERSION_5.1.1", "GEOIP_REGION_Ohio", "EXTERNALPLACEMENTID_9a09d7bc00799e13f41019f060683ef2", "UA_BROWSER_Chrome Mobile", "GEOIP_TIMEZONE_America/Denver", "GEOIP_REGION_Illinois", "GEOIP_REGION_Tennessee"]
     used_attr_ids = []
-
     with open(train) as fin:
         header = fin.readline()
         header = header.strip().split('\t')
@@ -68,24 +65,14 @@ if __name__ == '__main__':
         if used_attr_ids == []:
             for a in used_attrs:
                 used_attr_ids.append(header.index(a) - 1)
+            # used_attrs_ids = [(header.index(used_attr) - 1) for used_attr in used_attrs]
             print used_attr_ids
 
-    '''
-
-    param = {'bst:max_depth': 12,
-             'bst:eta': 0.01,
-             'subsample': 0.8,
-             'colsample_bytree': 0.7,
-             'silent': 0,
-             'objective': 'reg:linear',
-             'nthread': 7
-             }
-    plst = param.items()
-    num_round = 10000
 
     for key,_ in xm1:
         #if key not in ['4_2', '4_3', '4_']
         print "At:", key
+        et = ExtraTreesRegressor(n_estimators=500, n_jobs=-1)
         [month, day] = key.split('_')
         data = []
         print "Reading input"
@@ -93,6 +80,11 @@ if __name__ == '__main__':
             header = fin.readline()
             header = header.strip().split('\t')
             print header
+            if used_attr_ids == []:
+                for a in used_attrs:
+                    used_attr_ids.append(header.index(a) -1)
+                #used_attrs_ids = [(header.index(used_attr) - 1) for used_attr in used_attrs]
+                print used_attr_ids
             t_idx = header.index('TIMESTAMP')
             for line in fin:
                 line = line.strip().split('\t')
@@ -103,14 +95,11 @@ if __name__ == '__main__':
         data[data == 'null'] = '0'
         data = data.astype(float)
         x,y = data[:,1:], data[:,0]
-        #x = x[:, used_attr_ids]
+        x = x[:, used_attr_ids]
         print x.shape
         print "Fitting"
-
-        dtrain = xgb.DMatrix(x, y)
-        bst = xgb.train(plst, dtrain, num_round)
-        bst.save_model(base_output + "day_to_day_models/" + key + "-xboost")
-
+        et.fit(x, y)
+        joblib.dump(et, base_output + "day_to_day_models/" + key + "-et")
 
     models = ['4_6', '4_5', '4_4', '4_7', '4_1', '4_3', '4_2', '4_9', '4_8', '4_14', '4_15', '4_10', '4_11', '4_12', '4_13']
     files = {}
@@ -144,24 +133,23 @@ if __name__ == '__main__':
     predictions = {}
     for model in models:
         print "model:", model
-        bst = xgb.Booster({'nthread': 7})  # init model
-        bst.load_model(base_output + "day_to_day_models/" + model + "-xboost")  # load data
+        et = joblib.load(base_output + "day_to_day_models/" + model + "-et")
         print "Loaded models"
 
         for batch in read_tsv_batch(base+model+'_test.tsv', first_line=True, batchsize=10000):
             x = batch[:,2:]
             x[x == 'null'] = '0'
             x = x.astype(float)
-            #x = x[:, used_attr_ids]
+            x = x[:, used_attr_ids]
             ids = batch[:,0].astype(int)
 
-            pred = bst.predict(xgb.DMatrix(x))
+            pred = et.predict(x)
             for i,y in zip(ids, pred):
                 predictions[i] = "{0:.3f}".format(y)
 
         del pred
         del x
-        del bst
+        del et
 
     file = open(base+'predictions_dict', 'wb')
     print "Predicing rest"
