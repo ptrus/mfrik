@@ -25,11 +25,56 @@ if __name__ == '__main__':
     shuffled_path = base + file + "-without-outliers-shuffled.tsv"
     preprocessed = base+ file + "-preprocessed-with_cntriesALL.tsv"
 
+    used_attrs = ["UA_MODEL_iPhone", "SDK_MobileWeb", "timestamp_second", "timestamp_minute", "GEOIP_LAT",
+                  "TOPMOSTREACHABLEWINDOWHEIGHT",
+                  "GEOIP_LNG", "timestamp_alteranivestamp", "TIMESTAMP", "timestamp_hour",
+                  "TOPMOSTREACHABLEWINDOWWIDTH", "CDNNAME_c",
+                  "CDNNAME_b", "HOSTWINDOWHEIGHT", "CDNNAME_a", "EXTERNALSITEID_79a633437974c47dfbe937dbdb28a6b0",
+                  "HOSTWINDOWWIDTH",
+                  "CREATIVETYPE_Interstitial", "FILESJSON_size", "ACCOUNTID_e509567e0d78b3cd8b2d8e40f570162d",
+                  "SDK_6650fadcc0264109f8bd976558377652",
+                  "FILESJSON_len", "ERRORJSON_len", "EXTERNALSITEID_e8dfd4d5a2d3f6641f6d61eac1c321cf",
+                  "GEOIP_COUNTRY_United States", "UA_BROWSERVERSION_49.0.2623.105",
+                  "UA_PLATFORM_Android", "UA_OS_Android", "EXTERNALPLACEMENTID_OTHER",
+                  "ACCOUNTID_ce608160cb7578c77d638c1b4a9aacfa", "GEOIP_REGION_OTHER",
+                  "GEOIP_AREACODE_OTHER", "UA_BROWSERVERSION_OTHER", "GEOIP_CITY_OTHER", "CREATIVETYPE_Reveal",
+                  "CAMPAIGNID_OTHER", "CREATIVEID_OTHER",
+                  "PLACEMENTID_OTHER", "CAMPAIGNID_5551d46cc711d64b701aa0d1bc896755", "DEVICEORIENTATION_90",
+                  "CREATIVETYPE_Banner", "GEOIP_TIMEZONE_America/New_York",
+                  "GEOIP_COUNTRY_OTHER", "UA_BROWSERVERSION_48.0.2564.106",
+                  "ACCOUNTID_98631171fb929a05c906945548455230", "EXTERNALADSERVER_149d62d213b2dfec327ac2dc3391d0d5",
+                  "UA_VENDOR_Samsung", "GEOIP_TIMEZONE_America/Chicago", "CREATIVETYPE_ExpandableBanner",
+                  "GEOIP_REGION_New York", "GEOIP_DMACODE_OTHER", "DEVICEORIENTATION_0",
+                  "GEOIP_REGION_null", "GEOIP_METROCODE_OTHER", "INTENDEDDEVICETYPE_Phone", "GEOIP_REGION_Texas",
+                  "GEOIP_CITY_null", "UA_VENDOR_LG", "CAMPAIGNID_0d6fc6a0aee47855ef5ad9dc50db0c41",
+                  "UA_OSVERSION_OTHER", "EXTERNALPLACEMENTID_10efe8cb24fcd1321ab3a049f4499353",
+                  "EXTERNALSITEID_d9c9180c1a8bfd5ad3b6767cb91059fd", "CREATIVETYPE_Interscroller",
+                  "GEOIP_REGION_Florida",
+                  "GEOIP_REGION_Virginia", "UA_BROWSERVERSION_null", "GEOIP_TIMEZONE_null", "UA_OSVERSION_9.3.1",
+                  "PLATFORMVERSION_9.3.1", "UA_PLATFORMVERSION_9.3.1", "GEOIP_REGION_Pennsylvania",
+                  "GEOIP_REGION_California",
+                  "UA_MODEL_OTHER", "PLATFORMVERSION_9.2.1", "UA_OSVERSION_9.2.1", "UA_PLATFORMVERSION_9.2.1",
+                  "EXTERNALSITEID_OTHER", "GEOIP_TIMEZONE_America/Los_Angeles", "UA_BROWSERVERSION_9.0",
+                  "UA_OSVERSION_9.3", "UA_PLATFORMVERSION_9.3", "PLATFORMVERSION_9.3", "UA_VENDOR_OTHER",
+                  "UA_OSVERSION_NT 6.1", "ACCOUNTID_b3bfec32aeb2724d2ff03da0a19ff6b8", "GEOIP_REGION_Michigan",
+                  "ACCOUNTID_47e9af3f9bd919e131062f46f44fba4e", "UA_OSVERSION_6.0.1", "PLATFORMVERSION_6.0.1",
+                  "GEOIP_REGION_Wisconsin", "GEOIP_REGION_Georgia", "UA_OSVERSION_5.1.1", "PLATFORMVERSION_5.1.1",
+                  "UA_PLATFORMVERSION_5.1.1", "GEOIP_REGION_Ohio",
+                  "EXTERNALPLACEMENTID_9a09d7bc00799e13f41019f060683ef2", "UA_BROWSER_Chrome Mobile",
+                  "GEOIP_TIMEZONE_America/Denver", "GEOIP_REGION_Illinois", "GEOIP_REGION_Tennessee"]
+    used_attr_ids = []
+
+
     out = []
     with open(preprocessed, 'r') as f:
         header = f.readline()
         header = header.strip().split('\t')
         t_idx = header.index('TIMESTAMP')
+        if used_attr_ids == []:
+            for a in used_attrs:
+                used_attr_ids.append(header.index(a) - 1)
+            print used_attr_ids
+
         for line in f:
             line = line.strip().split('\t')
             if datetime.fromtimestamp(float(str(line[t_idx]))).day == 4:
@@ -38,18 +83,14 @@ if __name__ == '__main__':
     out = np.array(out)
     out[out == 'null'] = '0'
     x,y = out[:,1:].astype(float), out[:,0].astype(float)
-    x = x[:-200]
-    y = y[:-200]
-    print x,
-    x_valid = x[-200:]
-    y_valid = y[-200:]
+    x =  x[:,used_attr_ids]
+    x_valid = x[-10000:]
+    y_valid = y[-10000:]
+    x = x[:-10000]
+    y = y[:-10000]
 
-    param = {'bst:max_depth': 12,
-             'bst:eta': 0.01,
-             'subsample': 0.8,
-             'colsample_bytree': 0.7,
+    param = {
              'silent': 0,
-             'objective': 'reg:linear',
              'nthread': 7
              }
 
@@ -59,7 +100,7 @@ if __name__ == '__main__':
     evallist = [(dtrain, 'train'), (dtest, 'test')]
     plst = param.items()
 
-    bst = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=250, early_stopping_rounds=250)
+    bst = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=100, early_stopping_rounds=100)
     xgb.importance(header[1:], model = bst)
 
     END()

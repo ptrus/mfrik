@@ -47,7 +47,6 @@ def SGD_fit(train_path, n_iters, batchsize=1000, loss='squared_loss', penalty='l
 
     return sgd
 
-# TODO: make a submission to leaderboard.
 if __name__ == '__main__':
     #base = "D:\\mfrik\\"
     #base="/home/peterus/Projects/mfrik/"

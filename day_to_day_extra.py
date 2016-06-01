@@ -41,6 +41,7 @@ if __name__ == '__main__':
     print "Average:", avg
 
     #models = {}
+
     '''
     used_attrs = ["UA_MODEL_iPhone", "SDK_MobileWeb", "timestamp_second", "timestamp_minute", "GEOIP_LAT", "TOPMOSTREACHABLEWINDOWHEIGHT",
                   "GEOIP_LNG", "timestamp_alteranivestamp", "TIMESTAMP", "timestamp_hour", "TOPMOSTREACHABLEWINDOWWIDTH", "CDNNAME_c",
@@ -69,19 +70,18 @@ if __name__ == '__main__':
             for a in used_attrs:
                 used_attr_ids.append(header.index(a) - 1)
             print used_attr_ids
-
     '''
 
-    param = {'bst:max_depth': 12,
+    param = {'bst:max_depth': 6,
              'bst:eta': 0.01,
              'subsample': 0.8,
              'colsample_bytree': 0.7,
              'silent': 0,
              'objective': 'reg:linear',
              'nthread': 7
-             }
+             } #min_child_weight
     plst = param.items()
-    num_round = 10000
+    num_round = 20000
 
     for key,_ in xm1:
         #if key not in ['4_2', '4_3', '4_']
@@ -103,13 +103,16 @@ if __name__ == '__main__':
         data[data == 'null'] = '0'
         data = data.astype(float)
         x,y = data[:,1:], data[:,0]
-        #x = x[:, used_attr_ids]
         print x.shape
         print "Fitting"
 
-        dtrain = xgb.DMatrix(x, y)
-        bst = xgb.train(plst, dtrain, num_round)
-        bst.save_model(base_output + "day_to_day_models/" + key + "-xboost")
+        dtest = xgb.DMatrix(x[-100:], y[-100:])
+        dtrain = xgb.DMatrix(x[:-100], y[:-100])
+        num_round = 10000
+        evallist = [(dtrain, 'train'), (dtest, 'test')]
+        bst = xgb.train(plst, dtrain, num_round, evallist, verbose_eval=100, early_stopping_rounds=100)
+        joblib.dump(bst, base_output + "day_to_day_models/" + key + "-xboost")
+
 
 
     models = ['4_6', '4_5', '4_4', '4_7', '4_1', '4_3', '4_2', '4_9', '4_8', '4_14', '4_15', '4_10', '4_11', '4_12', '4_13']
@@ -133,19 +136,20 @@ if __name__ == '__main__':
             if key not in models:
                 rest.write(str(i) + '\t')
                 rest.write(text)
+                rest.flush()
             else:
                 files[key].write(str(i) + '\t')
                 files[key].write(text)
-
+                files[key].flush()
 
     avg = 3.92983617223
 
     print 'Predicting'
     predictions = {}
+
     for model in models:
         print "model:", model
-        bst = xgb.Booster({'nthread': 7})  # init model
-        bst.load_model(base_output + "day_to_day_models/" + model + "-xboost")  # load data
+        bst = joblib.load(base_output + "day_to_day_models/" + model + "-xboost")
         print "Loaded models"
 
         for batch in read_tsv_batch(base+model+'_test.tsv', first_line=True, batchsize=10000):
@@ -155,7 +159,7 @@ if __name__ == '__main__':
             #x = x[:, used_attr_ids]
             ids = batch[:,0].astype(int)
 
-            pred = bst.predict(xgb.DMatrix(x))
+            pred = bst.predict(xgb.DMatrix(x), ntree_limit=bst.best_ntree_limit)
             for i,y in zip(ids, pred):
                 predictions[i] = "{0:.3f}".format(y)
 
@@ -173,8 +177,10 @@ if __name__ == '__main__':
 
         for i in ids:
             predictions[i] = "{0:.3f}".format(avg)
-    pickle.dump(predictions, file)
 
+    pickle.dump(predictions, file)
+    file.flush()
+    file.close()
     f = open(base + 'predictions_dict')
     predictions = pickle.load(f)
 

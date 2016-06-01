@@ -11,6 +11,7 @@ from sklearn.linear_model import SGDRegressor
 import discrete_values_map as m
 
 from random import randint
+from sklearn.preprocessing import StandardScaler
 
 def rmse(y_true, y_pred):
     output_errors = np.average((y_true - y_pred) ** 2, axis=0)
@@ -96,6 +97,101 @@ def read_tsv_online(path, maxmemusage=95):
                 print psutil.virtual_memory()
         yield np.array(buffer)
 
+class tsv_batches_generator():
+    def __init__(self, paths, first_line=False, batchsize=1000, standardscale=True):
+        if isinstance(paths, (list, np.ndarray)):
+            self.paths = paths
+        else:
+            self.paths = [paths]
+        self.first_line = first_line
+        self.batchsize = batchsize
+        self.standardscale = standardscale
+        self.standardscaler = StandardScaler()
+        if self.standardscale:
+            print "Fitting standardsccaler"
+            # Fit standardscaler on dataset
+            batch = []
+            cntr = 0
+            for path in self.paths:
+                print path
+                with open(path) as f:
+                    if not self.first_line:
+                        f.readline()
+                    if cntr == 0:
+                        # Skip first batch for validation.
+                        for _ in range(self.batchsize):
+                            f.readline()
+                    for line in f:
+                        batch.append(line.strip().split('\t'))
+                        cntr += 1
+                        if cntr == 50000:
+                            print "At:", cntr
+                            batch = np.array(batch)
+                            batch[batch == 'null'] = '0'
+                            batch = batch.astype(float)
+                            x = batch[:, 1:]
+                            self.standardscaler.partial_fit(x)
+                            batch = []
+                            cntr = 0
+            if batch != []:
+                batch = np.array(batch)
+                batch[batch == 'null'] = '0'
+                batch = batch.astype(float)
+                x = batch[:, 1:]
+                self.standardscaler.partial_fit(x)
+            print "Done"
+
+    def train(self):
+        batch = []
+        cntr = 0
+        while True:
+            first = True
+            for path in self.paths:
+                with open(path) as f:
+                    if not self.first_line:
+                        f.readline()
+                    if first:
+                        # Skip first batch for validation.
+                        for _ in range(self.batchsize):
+                            f.readline()
+                        first = False
+
+                    for line in f:
+                        batch.append(line.strip().split('\t'))
+                        cntr += 1
+                        if cntr == self.batchsize:
+                            batch = np.array(batch)
+                            batch[batch == 'null'] = '0'
+                            batch = batch.astype(float)
+                            x = batch[:, 1:]
+                            x = self.standardscaler.transform(x)
+                            yield (x, batch[:,0])
+                            del batch
+                            del x
+                            batch = []
+                            gc.collect()
+                            cntr = 0
+
+    def valid(self):
+        batch = []
+        while True:
+            # Use first batch from file for validation.
+            with open(self.paths[0]) as f:
+                if not self.first_line:
+                    f.readline()
+                for line in range(self.batchsize):
+                    batch.append(f.readline().strip().split('\t'))
+                batch = np.array(batch)
+                batch[batch == 'null'] = '0'
+                batch = batch.astype(float)
+                x = batch[:, 1:]
+                x = self.standardscaler.transform(x)
+                yield (x, batch[:, 0])
+                del x
+                del batch
+                batch = []
+                gc.collect()
+
 def read_tsvs_batch(paths, first_line=False, batchsize=100):
     for path in paths:
         for batch in read_tsv_batch(path, first_line, batchsize):
@@ -116,7 +212,8 @@ def read_tsv_batch(path, first_line=False, batchsize=100):
                 batch = []
                 gc.collect()
                 cntr = 0
-        yield np.array(batch)
+        if batch != []:
+            yield np.array(batch)
 
 def file_apply(inpath, outpath, headerfn=None, fn=id):
     with open(outpath, 'w') as fout:
@@ -156,7 +253,7 @@ def distinct_values(data, idxs):
 def output_distinct(data, h):
     data = data[1:]
     discreetes = ["ACCOUNTID","CAMPAIGNID","CREATIVEID","PLACEMENTID", "PLATFORMVERSION",
-                  "EXTERNALADSERVER", "EXTERNALCREATIVEID", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
+                  "EXTERNALADSERVER", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
                   "EXTERNALSUPPLIERID", "SDK", "NETWORKTYPE", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
                   "GEOIP_METROCODE", "GEOIP_DMACODE", "UA_MODEL", "UA_OSVERSION", "UA_BROWSERVERSION"]
     discreetesidxs = [h.index(d) for d in discreetes]
@@ -285,7 +382,7 @@ def remove_outliers(data, idx):
 ONE_UNIQUE_VAL = ["EXTERNALCREATIVEID"]
 # All distinct values are in test set
 TEST_SET_ALL = ["UA_DEVICETYPE", "DEVICEORIENTATION", "UA_BROWSERRENDERINGENGINE", "ACTUALDEVICETYPE", "PLATFORM",
-                "INTENDEDDEVICETYPE", "CDNNAME", "EXTERNALADSERVER", "NETWORKTYPE",
+                "INTENDEDDEVICETYPE", "CDNNAME", "EXTERNALADSERVER",
                 "ACCOUNTID", "CREATIVETYPE", "UA_OS", "SDK"]  # + "GEOIP_METROCODE", "GEOIP_DMACODE",
 ALL_CATEGORIES = ["ACCOUNTID", "CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "CREATIVETYPE",
 
@@ -305,18 +402,17 @@ ALL_CATEGORIES = ["ACCOUNTID", "CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "CREAT
                   ]
 
 NOT_USED_YET = ["CAMPAIGNID", "PLACEMENTID", "CREATIVEID", "PLATFORMVERSION", "EXTERNALPLACEMENTID", "EXTERNALSITEID",
-                "EXTERNALSUPPLIERID", "GEOIP_TIMEZONE", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
+                "GEOIP_TIMEZONE", "GEOIP_REGION", "GEOIP_CITY", "GEOIP_AREACODE",
                   "GEOIP_METROCODE", "GEOIP_DMACODE", "UA_HARDWARETYPE", "UA_PLATFORM", "UA_PLATFORMVERSION",
                 "UA_VENDOR", "UA_MODEL", "UA_OSVERSION", "UA_BROWSER", "UA_BROWSERVERSION",
                   "UA_BROWSERRENDERINGENGINE"]
-
 
 BINARY = ["UA_MOBILEDEVICE"]
 ALL_CONTINIOUS = ["TOPMOSTREACHABLEWINDOWHEIGHT", "TOPMOSTREACHABLEWINDOWWIDTH", "HOSTWINDOWHEIGHT", "HOSTWINDOWWIDTH"]
 JSON = ["FILESJSON", "ERRORSJSON"]
 TIMESTAMPS = ["TIMESTAMP"] + ["timestamp_dayofmonth", "timestamp_dayofweek", "timestamp_hour", "timestamp_minute",
-                              "timestamp_second", "timestamp_alteranivestamp"]
-GEO = ["GEOIP_LNG", "GEOIP_LAT"]
+                              "timestamp_second", "timestamp_milisecond","timestamp_alteranivestamp"]
+GEO = ["GEOIP_LNG", "GEOIP_LAT", "GEOIP_SUM", "GEOIP_PROD", "GEOIP_DIFF"]
 TARGET = "ADLOADINGTIME"
 
 if __name__ == '__main__':
@@ -415,15 +511,16 @@ if __name__ == '__main__':
     disc_attrs = TEST_SET_ALL
     print data.shape
     print h
-    for d in disc_attrs:
-        print "working %s" % d
-        data, h = discretasize(data, h, d)
-
-    print data.shape
-    print h
 
     data, h = parse_filejson(data, h, h.index("FILESJSON"))
 
     data, h = parse_errorjson(data, h, h.index("ERRORSJSON"))
     print data.shape
     write_tsv("D:\\mfrik\\outALL.tsv", data, h)
+
+    print h
+    for d in disc_attrs:
+        print "working %s" % d
+        data, h = discretasize(data, h, d)
+
+    print data.shape

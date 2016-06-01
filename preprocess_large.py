@@ -7,7 +7,7 @@ from sklearn_utils import OnlineLearner
 import not_used_stats
 
 # TODO: fix shuffle
-def get_percentile(path, idx=0, percentile=96):
+def get_percentile(path, idx=0, percentile=95):
     x = []
     with open(path, 'r') as f:
         for line in f:
@@ -19,7 +19,7 @@ def get_percentile(path, idx=0, percentile=96):
 
 def remove_outliers(inpath, outpath, idx=0):
     print "Removing outliers"
-    percentile = get_percentile(inpath, idx, 96)
+    percentile = get_percentile(inpath, idx, 95)
     print "96th percentile %f" % (percentile)
 
     first = True
@@ -33,7 +33,7 @@ def remove_outliers(inpath, outpath, idx=0):
                         fout.write(line)
                         continue
                 row = line.strip().split('\t')
-                if float(row[idx]) >= percentile: continue
+                if float(row[idx]) > percentile: continue
                 fout.write(line)
                 n_lines += 1
 
@@ -63,9 +63,10 @@ def binaries(line, header_old):
     for b in utils.BINARY:
         idx = header_old.index(b)
         val = line[idx]
-        if val == 'null':
-            val = '0'
-        new_line.append(val)
+        if val != 'null':
+            new_line.append(val)
+        else:
+            new_line.append('0')
 
     assert len(utils.BINARY) == len(new_line)
     return new_line
@@ -75,9 +76,13 @@ def continious(line, header_old):
     for b in utils.ALL_CONTINIOUS:
         idx = header_old.index(b)
         val = line[idx]
-        if val == 'null':
-            val = '0'
-        new_line.append(val)
+        if val != 'null':
+            new_line.append(val)
+        else:
+            if b == 'TOPMOSTREACHABLEWINDOWHEIGHT' or b == 'HOSTWINDOWHEIGHT':
+                new_line.append('50')
+            elif b == 'TOPMOSTREACHABLEWINDOWWIDTH' or b == 'HOSTWINDOWWIDTH':
+                new_line.append('320')
 
     assert len(utils.ALL_CONTINIOUS) == len(new_line)
     return new_line
@@ -106,24 +111,45 @@ def timestamps(line, header_old):
     idx = header_old.index('TIMESTAMP')
     val = line[idx]
     d = datetime.fromtimestamp(float(val))
-    new_line = [val, d.day, d.weekday(), d.hour, d.minute, d.second, (((((d.day * 24 + d.hour) * 60) + d.minute) * 60 + d.second) * 1000000) + d.microsecond]
+    new_line = [val, d.day, d.weekday(), d.hour, d.minute, d.second, d.microsecond, (((((d.day * 24 + d.hour) * 60) + d.minute) * 60 + d.second) * 1000000) + d.microsecond]
     assert len(utils.TIMESTAMPS) == len(new_line)
+    return new_line
+
+def missings(line, header_old):
+    cntr = 0
+    for v in line:
+        if v == 'null':
+            cntr += 1
+    new_line = [cntr]
     return new_line
 
 def geo(line, header_old):
     new_line = []
-    for b in utils.GEO:
+    latLng = []
+    GEO_lat_lng = ["GEOIP_LNG", "GEOIP_LAT"]
+    for b in GEO_lat_lng:
         idx = header_old.index(b)
         val = line[idx]
-        if val == 'null':
-            val = '0'
-        new_line.append(val)
+        if val != 'null':
+            latLng.append(val)
+            new_line.append(val)
+        else:
+            new_line.append('0')
+
+    if len(latLng) == 2:
+        [lat,lng] = latLng
+        new_line.append(float(lat) + float(lng))
+        new_line.append(float(lat) * float(lng))
+        new_line.append(float(lat) - float(lng))
+    else:
+        new_line.append(0)
+        new_line.append(0)
+        new_line.append(1000)
 
     idx = header_old.index('GEOIP_COUNTRY')
     val = line[idx]
     cntries = geoip_countries
     line = np.zeros(len(cntries))
-
     if val in cntries:
         new_idx = cntries.index(val)
         line[new_idx] = 1
@@ -157,7 +183,7 @@ def not_used_headers(fields):
         new_header = new_header + [field + '_' + val for val in field_values_dict[field]]
     return new_header
 
-atlest=10000
+atleast=10000
 def get_field_values(field, atleast=10000):
     return [key for key,c in getattr(not_used_stats, field).items() if c >= atleast] + ['OTHER']
 
@@ -166,7 +192,7 @@ for f in utils.NOT_USED_YET:
     field_values_dict[f] = get_field_values(f)
 
 
-geoip_countries = [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atlest] + ['OTHER']
+geoip_countries = [key for key,c in m.GEOIP_COUNTRY_vals.items() if c >= atleast] + ['OTHER']
 
 def geoip_heades(geoip_countries):
     return ['GEOIP_COUNTRY_' + x for x in geoip_countries]
@@ -188,7 +214,7 @@ def split_train_test(in_path, out_path, test_size=50000):
 
 def preprocess(inpath, outpath):
     # ORDER IS IMOPRTANT
-    header_new = [utils.TARGET] + discrete_headers +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries) + not_used_headers(utils.NOT_USED_YET)
+    header_new = [utils.TARGET] + discrete_headers +  utils.BINARY + utils.ALL_CONTINIOUS + json_headers() + utils.TIMESTAMPS + utils.GEO + geoip_heades(geoip_countries) + ['missing_count']#+ not_used_headers(utils.NOT_USED_YET) + ['missing_count']
     print header_new
     header_old = []
     first = True
@@ -219,7 +245,9 @@ def preprocess(inpath, outpath):
                 # Geo
                 new_line += geo(line, header_old)
                 # Not used fields
-                new_line += not_uesd_fields(line, header_old)
+                #new_line += not_uesd_fields(line, header_old)
+                # Number of nulls
+                new_line += missings(line, header_old)
 
                 assert len(new_line) == len(header_new)
                 out.write('\t'.join([str(x) for x in new_line]) + '\n')
@@ -263,9 +291,9 @@ if __name__ == '__main__':
 
     test_split = True
     base_base = base + file
-    without_outliers = base + file + "-without-outliersALL.tsv"
-    shuffled_path = base + file + "-without-outliers-shuffledALL.tsv"
-    preprocessed = base+ file + "-preprocessed-with_cntriesALL.tsv"
+    without_outliers = base + file + "-without-outliers.tsv"
+    shuffled_path = base + file + "-without-outliers-shuffled.tsv"
+    preprocessed = base+ file + "-preprocessed.tsv"
 
     # Test split is only preprocessed
     if test_split:
