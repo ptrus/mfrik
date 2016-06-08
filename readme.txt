@@ -1,3 +1,5 @@
+# Submission for mining frik competition
+
 - setup base directory in main methods of preprocess.py and model.py files
 	- base directory should contain ccdm_test.tsv, ccdm_sample.tsv, ccdm_medium.tsv and ccdm_large.tsv
 - run preprocess.py (with python 2.7)
