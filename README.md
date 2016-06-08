@@ -5,5 +5,5 @@
 - run preprocess.py (with python 2.7)
 	- preprocess will create: ccdm_test-preprocessed.tsv and ccdm_all-preprocessed.tsv files in base directory
 - run model.py
-	- model will do crossvalidation, and predict the leaderboard set file in base direcetory:
+	- model will do crossvalidation, and predict the leaderboard set file in base directory:
 		- prediction_xb_sparse.tsv
